@@ -186,8 +186,10 @@ def run_bench(seed, duration, out_path, frame_out=None):
     frames = len(times)
     k = max(1, math.ceil(0.01 * frames))
     slowest = sorted(times, reverse=True)[:k]
+    # measured_s giữ nguyên độ chính xác để frames / measured_s tính lại đúng avg_fps (làm tròn measured_s
+    # rồi so sẽ lệch tới ~0.6 FPS khi FPS cao và --duration ngắn)
     result = {"avg_fps": round(frames / measured_s, 2), "p1_low_fps": round(1.0 / (sum(slowest) / k), 2),
-              "frames": frames, "measured_s": round(measured_s, 3), "load_ms": load_ms}
+              "frames": frames, "measured_s": measured_s, "load_ms": load_ms}
     with open(out_path, "w", encoding="utf-8", newline="\n") as f:
         json.dump(result, f)
         f.write("\n")

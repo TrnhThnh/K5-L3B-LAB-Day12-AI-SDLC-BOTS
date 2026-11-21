@@ -36,7 +36,8 @@ class Bench(unittest.TestCase):
             self.assertEqual(set(b), {"avg_fps", "p1_low_fps", "frames", "measured_s", "load_ms"})
             self.assertGreater(b["frames"], 0)
             self.assertAlmostEqual(b["measured_s"], 1.0, delta=0.2)
-            self.assertAlmostEqual(b["avg_fps"], b["frames"] / b["measured_s"], delta=0.5)
+            # avg_fps phải tính lại được từ đúng hai trường đã ghi (chỉ lệch do làm tròn 2 chữ số)
+            self.assertAlmostEqual(b["avg_fps"], b["frames"] / b["measured_s"], delta=0.006)
             self.assertLessEqual(b["p1_low_fps"], b["avg_fps"] + 0.01, "1% low không thể nhanh hơn trung bình")
             self.assertGreaterEqual(b["load_ms"], 0)
             with open(png, "rb") as f:
