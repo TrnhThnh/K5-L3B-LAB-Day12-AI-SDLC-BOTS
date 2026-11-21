@@ -5,7 +5,7 @@
 ## Lệnh
 - Test: `PYTHONPATH=tests:. python3 -m unittest discover -s tests -v`
 - Headless: `python3 -m chonoi.headless --mode gather|quan --seed 1 --ticks 600 --out out.jsonl`
-- Chơi thử trên trình duyệt: `python3 -m chonoi.live --mode gather|quan` (mở địa chỉ in ra; WASD, E, Space, R)
+- Chơi thử trên trình duyệt: `python3 -m chonoi.live --mode day [--days 5]` (hoặc `gather|quan`; mở địa chỉ in ra). Phím: WASD/mũi tên, E, Space, Esc/P tạm dừng, Shop: 1/2 mua, Enter đóng; R chơi lại
 - Chỉ test luật gather: `PYTHONPATH=tests:. python3 -m unittest tests.test_gather_rules tests.test_gather_p2 -v`
 - Vòng ngày (v1.1): `python3 -m chonoi.headless --mode day --days 1 --seed 1 --ticks 22200 --out day.jsonl`; test: `tests.test_day`
 - **Windows** (không có `python3`): test hộp đen gọi `headless_cmd` = `python3 ...` nên báo `FileNotFoundError`. Không sửa `headless_cmd`, vì bộ chấm chạy trên Linux. Cách xử lý: tạo `python3.exe` (copy `python.exe` cùng `python3*.dll` sang một thư mục, rồi thêm thư mục đó vào PATH) hoặc chạy trong WSL. Trên PowerShell, `PYTHONPATH` phân cách bằng `;`: `$env:PYTHONPATH="tests;."`.

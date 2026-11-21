@@ -77,7 +77,7 @@ Ticket-02 gợi ý 4 lát: (1) số chuẩn và cá bơi/sinh, (2) Cá Sấu, M�
 - [x] Lát 1: cá bơi 1.5 m/s, đổi hướng theo seed mỗi 120 bước, phản xạ ở mép, sinh cá mỗi 360 tick (trần 12 đàn, trọng số loài), sự kiện `fish_spawned`, trường `age_ticks`.
 - [x] Lát 2: Cá Sấu M1 (M2 từ Ngày 3) với patrol, chase, recoil. Cú chạm làm mất 1 Máu, rơi `floor(n/2)` món theo LIFO, bất tử 90 tick; sự kiện `monster_hit`, `faint` với `cause: "monster"`.
 - [x] Lát 4a: `--mode day` và `--days`, vòng pha `day_start → day_plan → phase_start(gather) → quan → shop`, bàn giao kho trong bộ nhớ, giữ tiền, uy tín và cấp qua các Ngày, `active_upgrades` áp từ Ngày kế. `pause`/`resumed` ở cả ba mode.
-- [ ] Lát 4b, nếu còn giờ: HUD, menu và màn hình DayIntro, EveningIntro, DayResult trên `chonoi.live`.
+- [x] Lát 4b, nếu còn giờ: HUD, menu và màn hình DayIntro, EveningIntro, DayResult trên `chonoi.live`.
 - [ ] Smoke `day --days 1`, chạy nhiều Ngày để kiểm nâng cấp, gắn tag `phase-2`.
 
 ### Việc của Thịnh
