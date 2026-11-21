@@ -73,10 +73,21 @@ Payload món trên tay: `{order_id, dish_id, base_price}`, `order_id` bằng id 
 - Thứ tự một bước gather (mục 4.5): đồng hồ, hồi chiêu, bất tử, nút → bơi, oxy, ngạt → Cá Sấu theo id rồi tối đa một hit → tương tác → bắt cá (vị trí cá trước khi bơi) → hết giờ → nếu còn giờ: cá bơi, sinh cá.
 - `GatherSim(tuning, scenario, streams, ids, day=1, oxygen_max_s=None, hp_max=None)`: vòng ngày truyền số Ngày (bố trí Cá Sấu) và cấp nâng cấp đang áp dụng.
 
+## 5. Vòng ngày `--mode day` (Chiến) và giao diện với quán, Shop (Thịnh)
+
+- `chonoi/sim/day.py`: `DaySim` giữ `money`, `earned`, `reputation`, `upgrades` (đã mua), `active_upgrades` (đang áp dụng), số Ngày và `days_completed`.
+- Dựng quán: `QuanSim(tuning, scenario_quan, streams, ids, inventory=<kho bàn giao>, money=, earned=, reputation=, dishes=<id món của kế hoạch Ngày>)`. Quán chạy riêng thì `dishes=None` (cả 6 món).
+- Dựng gather: `GatherSim(..., day=<Ngày>, oxygen_max_s=<cấp oxy đang áp>, hp_max=<cấp áo phao đang áp>)`.
+- Shop: `ShopPhase(shop_cfg, stock)` với `step(inp, day)`. Bản hiện tại là bản tối thiểu (mua `oxygen`, `hp`; `bought`, `buy_failed` với `funds`/`max_level`/`unknown`; `shop_done`; tự đóng sau `shop.max_ticks`). Thịnh tiếp quản file này nếu cần thêm.
+- Input v1.1: nút `pause`, `shop_done`; `buy` là chuỗi, chỉ có tác dụng ở đúng frame khai báo. Pause xử lý trong `Session.step` (runner) cho cả ba mode.
+- Sự kiện vòng ngày: `day_start {}`, `day_plan {dishes, ingredients}`, `phase_start {}`, `paused {}`, `resumed {}`, `bought {upgrade, level, price, money}`, `buy_failed {action, reason}`, `shop_end {reason: done/time}`. Vỏ event của `day` có thêm `day`.
+- Snapshot `day` có thêm `day`, `day_plan`, `upgrades`, `active_upgrades`; pha `shop` có `stock` dư từ ca và `time_left_ticks` tới lúc đóng. Dòng `end` có `days_completed`, hoàn thành đủ Ngày thì `reason: "days_complete"`.
+
 ## Lịch sử thay đổi hợp đồng
 
 | Ngày | Ai | Đổi gì | Lý do |
 |---|---|---|---|
 | 2026-11-21 | Chiến | Bản đầu: kho, giao diện UI, sự kiện gather | Kickoff Phase 1 |
 | 2026-11-21 | Chiến | Đổi `data` sự kiện gather, thêm sự kiện quán theo PRD-0 mục E | Có PRD-0 thật; bản đầu tự đặt tên trường |
+| 2026-11-21 | Chiến | Vòng ngày `day`, pause, Shop tối thiểu, input `buy`/`shop_done`/`pause` | Ticket-02 mục 2, 4 |
 | 2026-11-21 | Chiến | Contract v1.1: số chuẩn, 6 nguyên liệu, 6 món, 2 bếp, 4 bàn, cá bơi/sinh, Cá Sấu, `day_plan`, `shop` | Ticket-02 (Phase 2) |

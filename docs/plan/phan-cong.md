@@ -76,14 +76,14 @@ Ticket-02 gợi ý 4 lát: (1) số chuẩn và cá bơi/sinh, (2) Cá Sấu, M�
 - [x] P2-A, đầu phase: chuyển `game.contract.json` sang `contract_version: "1.1"` với số chuẩn ở Ticket-02 mục 1 và mục 4.1: thêm khóa cá (`fish_speed`, `fish_turn_ticks`, `fish_max`, `fish_spawn_*`, `fish_x`, `fish_depths`, `fish_weights`), 8 đàn `fish_initial`, nút N5/N6 kèo nèo, `ca_keo`, `gather.monsters`, `quan` thêm B2 và T2–T4, `menu` 6 món, `day_plan` D1–D5, `shop`. Sửa phần kiểm tra trong `chonoi/contract.py`, `chonoi/inventory.py` (6 nguyên liệu) và `chonoi/scenario.py` cho v1.1. Đây là file khung, sửa xong báo Thịnh vì ảnh hưởng cả quán.
 - [x] Lát 1: cá bơi 1.5 m/s, đổi hướng theo seed mỗi 120 bước, phản xạ ở mép, sinh cá mỗi 360 tick (trần 12 đàn, trọng số loài), sự kiện `fish_spawned`, trường `age_ticks`.
 - [x] Lát 2: Cá Sấu M1 (M2 từ Ngày 3) với patrol, chase, recoil. Cú chạm làm mất 1 Máu, rơi `floor(n/2)` món theo LIFO, bất tử 90 tick; sự kiện `monster_hit`, `faint` với `cause: "monster"`.
-- [ ] Lát 4a: `--mode day` và `--days`, vòng pha `day_start → day_plan → phase_start(gather) → quan → shop`, bàn giao kho trong bộ nhớ, giữ tiền, uy tín và cấp qua các Ngày, `active_upgrades` áp từ Ngày kế. `pause`/`resumed` ở cả ba mode.
+- [x] Lát 4a: `--mode day` và `--days`, vòng pha `day_start → day_plan → phase_start(gather) → quan → shop`, bàn giao kho trong bộ nhớ, giữ tiền, uy tín và cấp qua các Ngày, `active_upgrades` áp từ Ngày kế. `pause`/`resumed` ở cả ba mode.
 - [ ] Lát 4b, nếu còn giờ: HUD, menu và màn hình DayIntro, EveningIntro, DayResult trên `chonoi.live`.
 - [ ] Smoke `day --days 1`, chạy nhiều Ngày để kiểm nâng cấp, gắn tag `phase-2`.
 
 ### Việc của Thịnh
 - [x] ~~Xong luật quán Phase 1 (lát 3–4)~~: Chiến đã làm thay (`chonoi/sim/quan.py`, `tests/test_quan_rules.py`). Thịnh đọc lại và góp ý.
 - [ ] Lát 3: quán với 2 bếp, 4 bàn, 6 món (đã khai trong contract ở P2-A, code đọc theo dữ liệu nên không cần ghi số). Khách đến lúc tick 120 rồi cứ mỗi 900 tick, ngồi bàn trống id nhỏ nhất. Trong `day`, lọc menu theo món của kế hoạch Ngày trước khi xét nguyên liệu.
-- [ ] Lát 4 phần Shop: `buy` (oxygen, hp), `bought`, `buy_failed` (funds, max_level, unknown), `shop_done`, tự đóng sau `shop.max_ticks`, `shop_end`. Tiền trừ vào `money`, giữ `earned`. Viết hàm Shop riêng để Chiến gọi từ vòng ngày.
+- [ ] Lát 4 phần Shop (Chiến đã viết bản tối thiểu `ShopPhase` trong `chonoi/sim/day.py` để vòng ngày chạy; Thịnh rà lại theo đề và bổ sung): `buy` (oxygen, hp), `bought`, `buy_failed` (funds, max_level, unknown), `shop_done`, tự đóng sau `shop.max_ticks`, `shop_end`. Tiền trừ vào `money`, giữ `earned`. Viết hàm Shop riêng để Chiến gọi từ vòng ngày.
 - [ ] Phút 20: smoke tích hợp `gather --inventory-out` rồi `quan --inventory`, lưu `docs/proof/phase-2/integration.*`.
 - [ ] Chạy lại toàn bộ test Phase 1 với số chuẩn (regression). Test nào phải đổi thì ghi lý do trong commit.
 - [ ] `docs/verification/phase-2.md`, retro nhanh trong `docs/retro.md` (phút 45–50), ghi standup và ai-usage-log.

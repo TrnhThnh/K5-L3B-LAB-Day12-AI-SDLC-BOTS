@@ -33,7 +33,9 @@ class QuanSim:
     mode = "quan"
     phase = "quan"
 
-    def __init__(self, tuning, scenario, streams, ids, inventory=None):
+    def __init__(self, tuning, scenario, streams, ids, inventory=None, money=0, earned=0, reputation=None,
+                 dishes=None):
+        """Vòng ngày (`day`) truyền tiền, earned, uy tín đầu ca và `dishes` (id món của kế hoạch Ngày)."""
         t = tuning["quan"]
         self.t = t
         self.menu = tuning["menu"]
@@ -48,7 +50,10 @@ class QuanSim:
         self.stock = dict(inventory if inventory is not None else scenario.get("stock", {}))
         self.hand = scenario.get("hand")
         self.time_left_ticks = scenario.get("time_left_ticks", _ticks(t["duration_s"]))
-        self.reputation = float(scenario.get("reputation", t["reputation_initial"]))
+        if reputation is None:
+            reputation = scenario.get("reputation", t["reputation_initial"])
+        self.reputation = float(reputation)
+        self.dishes = None if dishes is None else set(dishes)
         self.random_customers = scenario.get("random_customers", True)
         self.patience_max = _ticks(t["patience_s"])
         self.phase_tick = 0
@@ -61,8 +66,8 @@ class QuanSim:
             ids.reserve(e["id"])
         self._fill_missing_reserved(scenario.get("customers", []))
         self._validate_fixture()
-        self.money = 0
-        self.earned = 0
+        self.money = money
+        self.earned = earned
         self.shift_earned = 0
         self.done = False
         self.reason = None
@@ -304,7 +309,8 @@ class QuanSim:
         free = [tb for tb in self.tables if tb["id"] not in busy]  # tables đã sắp theo id
         if not free:
             return
-        dishes = [d for d in sorted(self.menu) if self._can_make(d)]
+        # trong day: lọc theo món của kế hoạch trước, rồi mới lọc nguyên liệu khả dụng
+        dishes = [d for d in sorted(self.menu) if (self.dishes is None or d in self.dishes) and self._can_make(d)]
         if not dishes:
             events.append(("no_dish", {}))
             return

@@ -18,3 +18,5 @@
 - Gather lát 1: 8 đàn đầu ca theo seed, cá bơi/đổi hướng/phản xạ, sinh cá mỗi 360 tick (`fish_spawned`).
 - Gather lát 2: Cá Sấu patrol/chase/recoil, `monster_hit`, bất tử 90 tick, ngất do quái.
 - Test: `tests/test_gather_p2.py` (17 test); sửa 3 test cũ theo luật mới (lý do trong commit).
+- Lát 4a: `--mode day` và `--days`, vòng pha gather → quan → shop, bàn giao kho trong bộ nhớ, giữ tiền/uy tín/cấp qua Ngày, nâng cấp áp từ Ngày kế; pause/resumed cho cả ba mode; Shop tối thiểu.
+- Test: `tests/test_day.py` (13 test); test smoke cũ bỏ kiểm `--mode day` bị từ chối (v1.1 đã hỗ trợ).

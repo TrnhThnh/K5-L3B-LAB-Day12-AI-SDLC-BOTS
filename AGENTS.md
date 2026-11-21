@@ -6,12 +6,13 @@
 - Test: `PYTHONPATH=tests:. python3 -m unittest discover -s tests -v`
 - Headless: `python3 -m chonoi.headless --mode gather|quan --seed 1 --ticks 600 --out out.jsonl`
 - Chơi thử trên trình duyệt: `python3 -m chonoi.live --mode gather|quan` (mở địa chỉ in ra; WASD, E, Space, R)
-- Chỉ test luật gather: `PYTHONPATH=tests:. python3 -m unittest tests.test_gather_rules -v`
+- Chỉ test luật gather: `PYTHONPATH=tests:. python3 -m unittest tests.test_gather_rules tests.test_gather_p2 -v`
+- Vòng ngày (v1.1): `python3 -m chonoi.headless --mode day --days 1 --seed 1 --ticks 22200 --out day.jsonl`; test: `tests.test_day`
 - **Windows** (không có `python3`): test hộp đen gọi `headless_cmd` = `python3 ...` nên báo `FileNotFoundError`. Không sửa `headless_cmd`, vì bộ chấm chạy trên Linux. Cách xử lý: tạo `python3.exe` (copy `python.exe` cùng `python3*.dll` sang một thư mục, rồi thêm thư mục đó vào PATH) hoặc chạy trong WSL. Trên PowerShell, `PYTHONPATH` phân cách bằng `;`: `$env:PYTHONPATH="tests;."`.
 
 ## Cấu trúc & quy ước
 - (Starter Python là TÙY CHỌN; nhóm có thể dùng ngôn ngữ khác nếu giữ Test Contract.) Khung do giảng viên cấp: `chonoi/{headless,inputs,scenario,contract,rng,ids,jsonl,inventory,runner,live}.py` và `chonoi/web/`. Hạn chế sửa; nếu phải sửa thì báo cả nhóm và ghi lại lý do.
-- Luật chơi của nhóm: `chonoi/sim/gather.py`, `chonoi/sim/quan.py` (tìm `TODO(nhóm)`).
+- Luật chơi của nhóm: `chonoi/sim/gather.py`, `chonoi/sim/quan.py`, vòng ngày và Shop ở `chonoi/sim/day.py`. Nhóm đã sửa khung (`runner.py` cho pause/day, `inputs.py` cho `buy`/`pause`/`shop_done`, `scenario.py`, `contract.py`, `inventory.py` cho v1.1); lý do ghi trong commit.
 - **Số liệu chỉ đọc từ `game.contract.json` / dữ liệu**, không hard-code trong luật.
 - Mọi số ngẫu nhiên đi qua `Streams` (`chonoi/rng.py`); không dùng `random` toàn cục, không dùng đồng hồ hệ thống.
 - Sắp danh sách thực thể bằng `ids.sort_by_id`; cấp id bằng `IdAllocator`.
