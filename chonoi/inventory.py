@@ -64,7 +64,8 @@ def read_inventory(path: str, kinds=KINDS, version="1.2"):
         raise BadInput(f"không đọc được file kho {path}: {e}")
     if not isinstance(data, dict) or set(data.keys()) != {"items"}:
         raise BadInput("file kho chỉ được có khóa gốc 'items'")
-    if version == "1.2":
+    # v1.2 trở đi (v1.3 giữ nguyên kho của v1.2): kho cá thể. So theo số để "1.3", "1.10" vẫn đúng.
+    if tuple(int(x) for x in str(version).split(".")) >= (1, 2):
         return validate_individuals(data["items"])
     return validate_items(data["items"], kinds)
 

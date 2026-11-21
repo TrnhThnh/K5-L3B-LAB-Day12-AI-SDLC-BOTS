@@ -125,7 +125,9 @@ class DaySim:
         self.money, self.earned, self.reputation = q.money, q.earned, q.reputation
 
     def plan(self):
-        return self.plans.get(self.day, {"dishes": {}, "ingredients": {}})
+        """Kế hoạch của Ngày hiện tại. Quá 5 Ngày (soak 10 Ngày) thì D1–D5 lặp lại (Ticket-04 mục 2)."""
+        n = len(self.plans) or 1
+        return self.plans.get(self.day, self.plans.get((self.day - 1) % n + 1, {"dishes": {}, "ingredients": {}}))
 
     # --- dựng pha -------------------------------------------------------------------
     def _level_value(self, kind, key):

@@ -25,3 +25,12 @@
 ## Phase 3 — thay đổi schema kho
 
 V1.2 dùng mảng cá thể trong file kho, gather.hold và quan.stock. Thay mỗi đơn vị trong kho đếm bằng một object có id riêng, kind và fresh; xem docs/contracts/inventory.sample.json. Đổi phần giữ chỗ sang mảng id. Fixture cũ không còn hợp lệ.
+
+## Phase 4 — Test Contract v1.3, phát hành v1.0.0 (duongchien147)
+- `game.contract.json` → `contract_version: "1.3"`, khai `bench_cmd` (`python3 -m chonoi.bench`) và `soak_cmd` (`python3 -m chonoi.soak`). Gameplay, tuning, kho và JSONL giữ như v1.2.
+- `read_inventory` so phiên bản theo số: từ v1.2 trở đi đều đọc kho cá thể (trước đó chỉ nhận đúng chuỗi `"1.2"`, nên v1.3 sẽ quay về kho đếm).
+- Vòng ngày: quá 5 Ngày thì kế hoạch D1–D5 lặp lại (cho soak 10 Ngày).
+- `chonoi/bench.py`: benchmark có render phần mềm 1280×720, làm nóng 3 s, ghi `bench.json` 5 trường; `tests/test_bench.py`.
+- Cửa sổ chơi: ba cảnh báo có chữ và biểu tượng (thủy quái gần, oxy sắp hết/hết, khách sắp giận), chế độ tương phản cao (phím H, nhớ giữa các lần mở).
+- README của nhóm: chạy từ clone sạch 3 lệnh, điều khiển, cách tính điểm, lệnh test/headless/bench/soak, giới hạn đã biết. Đề lab gốc chuyển sang `docs/LAB.md`.
+

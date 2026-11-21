@@ -1,12 +1,19 @@
 {
-  "contract_version": "1.2",
+  "contract_version": "1.3",
   "team": "BOTS",
   "team_size": 2,
   "build_cmd": "true",
   "run_cmd": "python3 -m chonoi.live --mode day --days 5",
   "headless_cmd": "python3 -m chonoi.headless",
+  "bench_cmd": "python3 -m chonoi.bench",
+  "soak_cmd": "python3 -m chonoi.soak",
   "tuning": {
-    "freshness": {"initial": 100, "gather_decay_per_s": 0.5, "quan_decay_per_s": 0.25, "spoiled_below": 30},
+    "freshness": {
+      "initial": 100,
+      "gather_decay_per_s": 0.5,
+      "quan_decay_per_s": 0.25,
+      "spoiled_below": 30
+    },
     "tick_hz": 60,
     "gather": {
       "duration_s": 180,
