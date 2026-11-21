@@ -73,9 +73,9 @@ Ticket-02 gợi ý 4 lát: (1) số chuẩn và cá bơi/sinh, (2) Cá Sấu, M�
 Điều kiện trước: luật quán Phase 1 đã xong (Chiến làm thay). Thịnh bắt đầu Phase 2 bằng việc đọc `chonoi/sim/quan.py` và `tests/test_quan_rules.py`.
 
 ### Việc của Chiến
-- [ ] P2-A, đầu phase: chuyển `game.contract.json` sang `contract_version: "1.1"` với số chuẩn ở Ticket-02 mục 1 và mục 4.1: thêm khóa cá (`fish_speed`, `fish_turn_ticks`, `fish_max`, `fish_spawn_*`, `fish_x`, `fish_depths`, `fish_weights`), 8 đàn `fish_initial`, nút N5/N6 kèo nèo, `ca_keo`, `gather.monsters`, `quan` thêm B2 và T2–T4, `menu` 6 món, `day_plan` D1–D5, `shop`. Sửa phần kiểm tra trong `chonoi/contract.py`, `chonoi/inventory.py` (6 nguyên liệu) và `chonoi/scenario.py` cho v1.1. Đây là file khung, sửa xong báo Thịnh vì ảnh hưởng cả quán.
-- [ ] Lát 1: cá bơi 1.5 m/s, đổi hướng theo seed mỗi 120 bước, phản xạ ở mép, sinh cá mỗi 360 tick (trần 12 đàn, trọng số loài), sự kiện `fish_spawned`, trường `age_ticks`.
-- [ ] Lát 2: Cá Sấu M1 (M2 từ Ngày 3) với patrol, chase, recoil. Cú chạm làm mất 1 Máu, rơi `floor(n/2)` món theo LIFO, bất tử 90 tick; sự kiện `monster_hit`, `faint` với `cause: "monster"`.
+- [x] P2-A, đầu phase: chuyển `game.contract.json` sang `contract_version: "1.1"` với số chuẩn ở Ticket-02 mục 1 và mục 4.1: thêm khóa cá (`fish_speed`, `fish_turn_ticks`, `fish_max`, `fish_spawn_*`, `fish_x`, `fish_depths`, `fish_weights`), 8 đàn `fish_initial`, nút N5/N6 kèo nèo, `ca_keo`, `gather.monsters`, `quan` thêm B2 và T2–T4, `menu` 6 món, `day_plan` D1–D5, `shop`. Sửa phần kiểm tra trong `chonoi/contract.py`, `chonoi/inventory.py` (6 nguyên liệu) và `chonoi/scenario.py` cho v1.1. Đây là file khung, sửa xong báo Thịnh vì ảnh hưởng cả quán.
+- [x] Lát 1: cá bơi 1.5 m/s, đổi hướng theo seed mỗi 120 bước, phản xạ ở mép, sinh cá mỗi 360 tick (trần 12 đàn, trọng số loài), sự kiện `fish_spawned`, trường `age_ticks`.
+- [x] Lát 2: Cá Sấu M1 (M2 từ Ngày 3) với patrol, chase, recoil. Cú chạm làm mất 1 Máu, rơi `floor(n/2)` món theo LIFO, bất tử 90 tick; sự kiện `monster_hit`, `faint` với `cause: "monster"`.
 - [ ] Lát 4a: `--mode day` và `--days`, vòng pha `day_start → day_plan → phase_start(gather) → quan → shop`, bàn giao kho trong bộ nhớ, giữ tiền, uy tín và cấp qua các Ngày, `active_upgrades` áp từ Ngày kế. `pause`/`resumed` ở cả ba mode.
 - [ ] Lát 4b, nếu còn giờ: HUD, menu và màn hình DayIntro, EveningIntro, DayResult trên `chonoi.live`.
 - [ ] Smoke `day --days 1`, chạy nhiều Ngày để kiểm nâng cấp, gắn tag `phase-2`.

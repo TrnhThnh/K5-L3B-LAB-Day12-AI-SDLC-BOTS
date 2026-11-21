@@ -58,9 +58,25 @@ Theo PRD-0 mục E:
 
 Payload món trên tay: `{order_id, dish_id, base_price}`, `order_id` bằng id khách.
 
+## 4. Thay đổi ở Test Contract v1.1 (Phase 2)
+
+- `game.contract.json`: `contract_version: "1.1"`, số chuẩn Ticket-02 mục 1. Nguyên liệu thêm `ca_keo`, `keo_neo` (file kho nhận 6 loại). `fish_initial` giờ là **số đàn** (8), vị trí chọn theo seed từ `fish_spawn_x` × `fish_spawn_depths`.
+- Snapshot gather thêm `fish[].age_ticks` và `monsters[].{id, kind, pos, waypoints, target_idx, state, state_ticks_left, recoil_dir}`.
+- Sự kiện gather mới:
+
+| Sự kiện | `data` |
+|---|---|
+| `fish_spawned` | `{id, kind, pos}` |
+| `monster_hit` | `{monster_id, hp, lost, pos}` (`pos` là vị trí người chơi, `lost` theo LIFO) |
+| `faint` | thêm `cause: "monster"`; `lost` là phần giỏ còn lại |
+
+- Thứ tự một bước gather (mục 4.5): đồng hồ, hồi chiêu, bất tử, nút → bơi, oxy, ngạt → Cá Sấu theo id rồi tối đa một hit → tương tác → bắt cá (vị trí cá trước khi bơi) → hết giờ → nếu còn giờ: cá bơi, sinh cá.
+- `GatherSim(tuning, scenario, streams, ids, day=1, oxygen_max_s=None, hp_max=None)`: vòng ngày truyền số Ngày (bố trí Cá Sấu) và cấp nâng cấp đang áp dụng.
+
 ## Lịch sử thay đổi hợp đồng
 
 | Ngày | Ai | Đổi gì | Lý do |
 |---|---|---|---|
 | 2026-11-21 | Chiến | Bản đầu: kho, giao diện UI, sự kiện gather | Kickoff Phase 1 |
 | 2026-11-21 | Chiến | Đổi `data` sự kiện gather, thêm sự kiện quán theo PRD-0 mục E | Có PRD-0 thật; bản đầu tự đặt tên trường |
+| 2026-11-21 | Chiến | Contract v1.1: số chuẩn, 6 nguyên liệu, 6 món, 2 bếp, 4 bàn, cá bơi/sinh, Cá Sấu, `day_plan`, `shop` | Ticket-02 (Phase 2) |

@@ -176,7 +176,8 @@ class Harvest(unittest.TestCase):
 
 class Catch(unittest.TestCase):
     def fish_scn(self, **extra):
-        b = {"player": {"pos": [15, 5]}, "fish": [{"id": "F1", "kind": "ca_linh", "pos": [15, 5]}]}
+        # random_fish=false: cá fixture đứng yên (v1.1 mục 4.3), để test luật bắt không phụ thuộc cá bơi
+        b = {"player": {"pos": [15, 5]}, "random_fish": False, "fish": [{"id": "F1", "kind": "ca_linh", "pos": [15, 5]}]}
         b.update(extra)
         return b
 

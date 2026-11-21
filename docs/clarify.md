@@ -15,3 +15,7 @@ Các giả định #2 đến #7 ghi lúc chưa có PRD-0. Khi PRD-0 có trên la
 | 9 | 2026-11-21, Phase 1 | Trường `dish` của bếp trong snapshot là gì? | Giả định: dùng payload món `{order_id, dish_id, base_price}`, giống `hand`. | Chiến |
 | 10 | 2026-11-21, Phase 1 | Id khách mới dùng tiền tố nào? | Giả định: `C` (C1, C2...), nối sau hậu tố lớn nhất của khách fixture. `order_id` bằng id khách theo PRD-0. | Chiến |
 | 11 | 2026-11-21, Phase 1 | Khách chờ hết kiên nhẫn đúng bước hết ca thì tính `patience` hay `closing`? | Tính `closing`, không trừ uy tín, vì PRD-0 chỉ trừ uy tín "nếu ca còn giờ". | Chiến |
+| 12 | 2026-11-21, Phase 2 | "Lấy hướng ban đầu theo seed" và "đổi hướng theo seed" là góc kiểu gì? | Giả định: góc thực chọn đều trong [0, 360). Đề cho phép "chọn ngẫu nhiên nhất quán trong mỗi bản nộp". | Chiến |
+| 13 | 2026-11-21, Phase 2 | 8 đàn đầu ca chọn điểm thế nào? | Giả định: chạy 8 lần đúng thuật toán sinh cá (trọng số loài, điểm cách mọi đàn đang sống > 1 m), nên 8 đàn luôn ở 8 điểm khác nhau. Không phát `fish_spawned` cho đàn đầu ca. | Chiến |
+| 14 | 2026-11-21, Phase 2 | Ngưỡng "người chơi ở d ≥ 10" của Cá Sấu lấy từ đâu? | Lấy cận dưới `depths` của loài (cá sấu [10, 30]), vì Ticket-02 mô tả rắn dùng "ngưỡng độ sâu của loài" (d < 8). | Chiến |
+| 15 | 2026-11-21, Phase 2 | Bước Cá Sấu vừa hết recoil có được phát hiện hoặc chạm không? | Không. Đề ghi "hết recoil về patrol, xét phát hiện/chạm từ bước kế". | Ticket-02 |

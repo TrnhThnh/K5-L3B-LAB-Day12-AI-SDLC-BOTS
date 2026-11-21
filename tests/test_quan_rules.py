@@ -70,10 +70,20 @@ class Customers(unittest.TestCase):
             self.assertEqual(s[first]["customers"], [])
 
     def test_no_free_table_skips_turn(self):
+        first = Q()["first_customer_tick"]
+        tables = Q()["tables"]
+        custs = [{"id": f"C{i}", "table_id": tb["id"], "dish_id": "goi_bong_sung"} for i, tb in enumerate(tables, 1)]
+        with Workdir() as w:
+            rows, _ = run(w, {"stock": {"bong_sung": 2 * len(tables) + 2}, "customers": custs}, first, every=first)
+            self.assertEqual(events(rows), [], "mọi bàn đều có khách thì bỏ lượt")
+
+    def test_second_customer_takes_next_table(self):
         first, every = Q()["first_customer_tick"], ticks(Q()["customer_interval_s"])
         with Workdir() as w:
             rows, _ = run(w, {"stock": {"bong_sung": 4}}, first + every, every=first + every)
-            self.assertEqual([e["name"] for e in events(rows)], ["customer_arrived"], "chỉ 1 bàn T1")
+            ev = events(rows, "customer_arrived")
+            self.assertEqual([(e["tick"], e["data"]["table_id"]) for e in ev],
+                             [(first, Q()["tables"][0]["id"]), (first + every, Q()["tables"][1]["id"])])
 
     def test_patience_runs_out(self):
         with Workdir() as w:

@@ -6,15 +6,17 @@ phải có đúng một món, khách eating thiếu giá/tip...) — xem PRD-0 m
 """
 
 import json
+import math
 
 from .errors import BadInput
-from .inventory import KINDS_P1, validate_items
+from .inventory import KINDS, validate_items
 
-GATHER_KEYS = {"player", "hold", "nodes", "fish", "random_fish", "time_left_ticks"}
+GATHER_KEYS = {"player", "hold", "nodes", "fish", "random_fish", "time_left_ticks", "monsters"}
 GATHER_PLAYER_KEYS = {"pos", "vel", "heading_deg", "hp", "oxygen_ticks", "zero_oxy_ticks",
                       "invuln_ticks", "catch_cd_ticks"}
-NODE_KINDS = ("bong_dien_dien", "bong_sung")
-FISH_KINDS = ("ca_linh", "ca_loc")
+NODE_KINDS = ("bong_dien_dien", "bong_sung", "keo_neo")
+FISH_KINDS = ("ca_linh", "ca_loc", "ca_keo")
+FISH_KEYS = {"id", "kind", "pos", "heading_deg", "age_ticks"}
 QUAN_PLAYER_KEYS = {"pos", "vel"}
 QUAN_KEYS = {"player", "stock", "hand", "stoves", "tables", "customers", "random_customers",
              "reputation", "time_left_ticks"}
@@ -91,7 +93,7 @@ def _validate_gather(b, tuning):
         raise BadInput("random_fish phải là boolean")
     if "hold" in b:
         h = b["hold"]
-        if not isinstance(h, list) or any(k not in KINDS_P1 for k in h):
+        if not isinstance(h, list) or any(k not in KINDS for k in h):
             raise BadInput("hold phải là mảng id nguyên liệu hợp lệ")
         if len(h) > g["hold_capacity"]:
             raise BadInput("hold vượt sức chứa")
@@ -138,6 +140,50 @@ def _validate_gather(b, tuning):
             raise BadInput(f"fish.{f['id']}: đàn cá phải ở dưới nước")
         if "heading_deg" in f and not _num(f["heading_deg"]):
             raise BadInput(f"fish.{f['id']}.heading_deg phải là số")
+        if set(f) - FISH_KEYS:
+            raise BadInput(f"fish.{f['id']}: trường lạ {sorted(set(f) - FISH_KEYS)}")
+        if "age_ticks" in f:
+            _nonneg_int(f"fish.{f['id']}.age_ticks", f["age_ticks"])
+    if "monsters" in b:
+        _validate_monsters(b["monsters"], g)
+
+
+MONSTER_KEYS = {"id", "kind", "pos", "waypoints", "target_idx", "state", "state_ticks_left", "recoil_dir"}
+
+
+def _validate_monsters(arr, g):
+    """Ticket-02 mục 4.3: gather.monsters[] thay danh sách mặc định."""
+    _check_ids("monsters", arr)
+    species = g["monsters"]["species"]
+    for m in arr:
+        name = f"monsters.{m['id']}"
+        if set(m) - MONSTER_KEYS:
+            raise BadInput(f"{name}: trường lạ {sorted(set(m) - MONSTER_KEYS)}")
+        if m.get("kind") not in species:
+            raise BadInput(f"{name}: kind phải thuộc {sorted(species)}")
+        lo, hi = species[m["kind"]]["depths"]
+        _pos(f"{name}.pos", m.get("pos"), g["bounds"])
+        if not (lo <= m["pos"][1] <= hi):
+            raise BadInput(f"{name}: ngoài dải độ sâu của loài [{lo}, {hi}]")
+        wps = m.get("waypoints")
+        if not isinstance(wps, list) or len(wps) != 2:
+            raise BadInput(f"{name}: cần đúng hai waypoint")
+        for i, w in enumerate(wps):
+            _pos(f"{name}.waypoints[{i}]", w, g["bounds"])
+        if m.get("target_idx", 1) not in (0, 1) or isinstance(m.get("target_idx"), bool):
+            raise BadInput(f"{name}: target_idx phải là 0 hoặc 1")
+        state = m.get("state", "patrol")
+        if state not in ("patrol", "chase", "recoil"):
+            raise BadInput(f"{name}: state phải là patrol, chase hoặc recoil")
+        ticks = m.get("state_ticks_left", 0)
+        _nonneg_int(f"{name}.state_ticks_left", ticks)
+        rd = m.get("recoil_dir")
+        if state == "recoil":
+            if ticks <= 0 or not (isinstance(rd, list) and len(rd) == 2 and all(_num(c) for c in rd)
+                                  and abs(math.hypot(*rd) - 1) < 1e-6):
+                raise BadInput(f"{name}: recoil cần state_ticks_left > 0 và recoil_dir là vector đơn vị")
+        elif rd is not None:
+            raise BadInput(f"{name}: recoil_dir chỉ có khi đang recoil")
 
 
 def _validate_quan(b, tuning):

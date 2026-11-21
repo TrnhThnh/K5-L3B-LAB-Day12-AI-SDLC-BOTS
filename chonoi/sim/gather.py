@@ -19,7 +19,10 @@ Thứ tự một bước (PRD mục 13.8, "Gather"):
       - hái nút ở mặt nước (gather, hold_full), nút mọc lại (node_regrown đã có phần đếm ngược)
       - bắt đàn cá bằng `catch` (fish_caught, hold_full, hồi chiêu catch_cd_ticks, chỉ khi dưới nước)
       - cập bến xét TRƯỚC hái (đã có); ghi kho đúng một lần do runner lo
-Các tính năng của phase sau chưa nằm trong khung này.
+Phase 2 (Ticket-02, Test Contract v1.1), thứ tự bước theo mục 4.5:
+  đồng hồ, hồi chiêu, bất tử, nút -> bơi, oxy, ngạt -> Cá Sấu theo id rồi tối đa một hit
+  -> tương tác (bến trước hái) -> bắt cá (vị trí cá trước khi bơi) -> hết giờ
+  -> nếu còn giờ: cá bơi, sinh cá theo lịch.
 """
 
 import math
@@ -30,14 +33,17 @@ from .ramp import ramp_velocity
 
 TICK = 60.0
 AXES = ("x", "d")
+MONSTER_STATES = ("patrol", "chase", "recoil")
 
 
 class GatherSim:
     mode = "gather"
     phase = "gather"
 
-    def __init__(self, tuning, scenario, streams, ids):
+    def __init__(self, tuning, scenario, streams, ids, day=1, oxygen_max_s=None, hp_max=None):
         t = tuning["gather"]
+        self.day = day
+        self.hp_max = int(hp_max if hp_max is not None else t["hp_max"])
         self.t = t
         self.rng = streams
         self.ids = ids
@@ -47,30 +53,35 @@ class GatherSim:
         self._tgt = None
         self._ramp_left = 0
         self.heading = float(p.get("heading_deg", t["start_heading_deg"]))
-        self.oxygen_max = int(round(t["oxygen_max_s"] * TICK))
+        self.oxygen_max = int(round((oxygen_max_s if oxygen_max_s is not None else t["oxygen_max_s"]) * TICK))
         self.oxygen_ticks = p.get("oxygen_ticks", self.oxygen_max)
-        self.hp = p.get("hp", t["hp_max"])
+        self.hp = p.get("hp", self.hp_max)
         self.zero_oxy_ticks = p.get("zero_oxy_ticks", 0)
         self.invuln_ticks = p.get("invuln_ticks", 0)
         self.catch_cd_ticks = p.get("catch_cd_ticks", 0)
         self.hold = list(scenario.get("hold", []))  # thứ tự nhặt, cuối mảng là mới nhất
         self.time_left_ticks = scenario.get("time_left_ticks", int(round(t["duration_s"] * TICK)))
+        self.phase_tick = 0
         # nút và đàn cá: scenario THAY THẾ danh sách mặc định; random_fish=false tắt cá mặc định
         src_nodes = scenario["nodes"] if "nodes" in scenario else t["nodes"]
         self.nodes = [{"id": n["id"], "kind": n["kind"], "pos": [float(c) for c in n["pos"]],
                        "regrow_ticks": n.get("regrow_ticks", 0)} for n in src_nodes]
-        if "fish" in scenario:
-            src_fish = scenario["fish"]
-        elif scenario.get("random_fish", True):
-            src_fish = t["fish_initial"]
-        else:
-            src_fish = []
-        # Đàn cá đứng yên ở phase này. Cá bơi / sinh thêm là việc của phase sau.
+        # random_fish=false: tắt cá mặc định, bơi và sinh; cá fixture đứng yên.
+        # random_fish=true + fish[]: thay đàn ban đầu, vẫn bơi/sinh.
+        self.fish_live = scenario.get("random_fish", True)
+        src_fish = scenario.get("fish", [])
         self.fish = [{"id": f["id"], "kind": f["kind"], "pos": [float(c) for c in f["pos"]],
-                      "heading_deg": f.get("heading_deg", 0)} for f in src_fish]
-        for coll in (self.nodes, self.fish):
+                      "heading_deg": float(f.get("heading_deg", 0)), "age_ticks": f.get("age_ticks", 0)}
+                     for f in src_fish]
+        src_mon = scenario["monsters"] if "monsters" in scenario else [
+            m for m in t["monsters"]["spawns"] if m.get("from_day", 1) <= day]
+        self.monsters = [self._monster(m) for m in src_mon]
+        for coll in (self.nodes, self.fish, self.monsters):
             for e in coll:
                 ids.reserve(e["id"])
+        if "fish" not in scenario and self.fish_live:
+            for _ in range(int(t["fish_initial"])):  # 8 đàn ở 8 điểm khác nhau theo seed
+                self._spawn_fish(None)
         self.money = 0
         self.earned = 0
         self.reputation = tuning["quan"]["reputation_initial"]
@@ -85,7 +96,7 @@ class GatherSim:
         return {
             "player": {"pos": self.pos, "vel": self.vel, "heading_deg": self.heading,
                        "oxygen_ticks": self.oxygen_ticks, "oxygen_max_ticks": self.oxygen_max,
-                       "hp": self.hp, "hp_max": self.t["hp_max"], "zero_oxy_ticks": self.zero_oxy_ticks,
+                       "hp": self.hp, "hp_max": self.hp_max, "zero_oxy_ticks": self.zero_oxy_ticks,
                        "invuln_ticks": self.invuln_ticks, "catch_cd_ticks": self.catch_cd_ticks,
                        "at_surface": self._at_surface()},
             "hold": self.hold, "hold_count": len(self.hold),
@@ -93,14 +104,17 @@ class GatherSim:
             "nodes": [{"id": n["id"], "pos": n["pos"], "kind": n["kind"],
                        "ready": n["regrow_ticks"] == 0, "regrow_ticks": n["regrow_ticks"]}
                       for n in sort_by_id(self.nodes)],
-            "fish": [{"id": f["id"], "pos": f["pos"], "kind": f["kind"], "heading_deg": f["heading_deg"]}
-                     for f in sort_by_id(self.fish)],
+            "fish": [{"id": f["id"], "pos": f["pos"], "kind": f["kind"], "heading_deg": f["heading_deg"],
+                      "age_ticks": f["age_ticks"]} for f in sort_by_id(self.fish)],
+            "monsters": [{k: m[k] for k in ("id", "kind", "pos", "waypoints", "target_idx", "state",
+                                             "state_ticks_left", "recoil_dir")} for m in sort_by_id(self.monsters)],
         }
 
     # --- một bước ---------------------------------------------------------------
     def step(self, inp):
         events = []
         # 1. đồng hồ và hàng có sẵn: giảm bộ đếm, nút mọc lại
+        self.phase_tick += 1
         self.time_left_ticks = max(0, self.time_left_ticks - 1)
         self.invuln_ticks = max(0, self.invuln_ticks - 1)
         self.catch_cd_ticks = max(0, self.catch_cd_ticks - 1)
@@ -120,6 +134,9 @@ class GatherSim:
         # 2b. oxy theo d CUỐI bước, ngạt, ngất
         if self._oxygen_step(now_surface, events):
             return events
+        # 2c. Cá Sấu theo id, rồi tối đa một hit
+        if self._monsters_step(events):
+            return events
         # 3. interact: bến trước, rồi hái (chỉ ở mặt nước)
         if inp.pressed("interact"):
             if self._in_dock():
@@ -130,9 +147,15 @@ class GatherSim:
         # 4. bắt cá (chỉ dưới nước, hết hồi chiêu)
         if inp.pressed("catch") and self.catch_cd_ticks == 0 and not now_surface:
             self._catch(events)
-        # 5. hết giờ
+        # 5. hết giờ; còn giờ thì cá bơi rồi sinh cá theo lịch
         if self.time_left_ticks <= 0:
             self._finish("time", events)
+            return events
+        if self.fish_live:
+            for f in sort_by_id(self.fish):
+                self._swim_fish(f)
+            if self.phase_tick % int(self.t["fish_spawn_ticks"]) == 0:
+                self._spawn_fish(events)
         return events
 
     # --- tiện ích ---------------------------------------------------------------
@@ -167,6 +190,137 @@ class GatherSim:
         lost = list(reversed(self.hold))  # bỏ giỏ theo LIFO: nhặt sau bỏ trước
         self.hold = []
         events.append(("faint", {"cause": "choke", "lost": lost, "hp": 0}))
+        self._finish("fainted", events)
+        return True
+
+    # --- cá bơi và sinh cá (Ticket-02 mục 1.1) ------------------------------------
+    def _swim_fish(self, f):
+        t = self.t
+        f["age_ticks"] += 1
+        if f["age_ticks"] % int(t["fish_turn_ticks"]) == 0:  # đổi hướng theo seed trước khi di chuyển
+            f["heading_deg"] = self.rng.get("fish_turn").uniform(0.0, 360.0)
+        h = math.radians(f["heading_deg"])
+        step = t["fish_speed"] / TICK
+        vec = [math.cos(h), math.sin(h)]
+        bands = (t["fish_x"], t["fish_depths"][f["kind"]])
+        for i in range(2):
+            lo, hi = bands[i]
+            v = f["pos"][i] + vec[i] * step
+            if v > hi:  # phản xạ phần quãng đường còn lại, đảo thành phần hướng vuông góc với mép
+                v, vec[i] = 2 * hi - v, -vec[i]
+            elif v < lo:
+                v, vec[i] = 2 * lo - v, -vec[i]
+            f["pos"][i] = min(hi, max(lo, v))
+        f["heading_deg"] = math.degrees(math.atan2(vec[1], vec[0])) % 360
+
+    def _spawn_fish(self, events):
+        """Sinh tối đa một đàn: còn dưới trần, có điểm cách mọi đàn đang sống > clearance.
+        Chọn loài theo trọng số (chuẩn hóa lại trên các loài còn điểm), rồi chọn đều một điểm."""
+        t = self.t
+        if len(self.fish) >= int(t["fish_max"]):
+            return
+        clear = t["fish_spawn_clearance"]
+        options = {}
+        for kind in sorted(t["fish_weights"]):
+            pts = [[float(x), float(d)] for x in t["fish_spawn_x"] for d in t["fish_spawn_depths"][kind]
+                   if all(math.dist([x, d], f["pos"]) > clear for f in self.fish)]
+            if pts:
+                options[kind] = pts
+        if not options:
+            return
+        rng = self.rng.get("fish_spawn")
+        total = sum(t["fish_weights"][k] for k in options)
+        r, acc, kind = rng.random() * total, 0.0, None
+        for k in options:
+            acc += t["fish_weights"][k]
+            kind = k
+            if r < acc:
+                break
+        pos = options[kind][rng.randrange(len(options[kind]))]
+        fish = {"id": self.ids.new("F"), "kind": kind, "pos": pos,
+                "heading_deg": rng.uniform(0.0, 360.0), "age_ticks": 0}
+        self.fish.append(fish)
+        if events is not None:
+            events.append(("fish_spawned", {"id": fish["id"], "kind": kind, "pos": list(pos)}))
+
+    # --- Cá Sấu (Ticket-02 mục 1.2) -----------------------------------------------
+    def _monster(self, m):
+        return {"id": m["id"], "kind": m["kind"], "pos": [float(c) for c in m["pos"]],
+                "waypoints": [[float(c) for c in w] for w in m["waypoints"]],
+                "target_idx": m.get("target_idx", 1), "state": m.get("state", "patrol"),
+                "state_ticks_left": m.get("state_ticks_left", 0), "recoil_dir": m.get("recoil_dir")}
+
+    def _species(self, m):
+        return self.t["monsters"]["species"][m["kind"]]
+
+    def _clamp_monster(self, m):
+        b, (dlo, dhi) = self.t["bounds"], self._species(m)["depths"]
+        m["pos"][0] = min(b["x"][1], max(b["x"][0], m["pos"][0]))
+        m["pos"][1] = min(dhi, max(dlo, m["pos"][1]))
+
+    @staticmethod
+    def _move_towards(m, target, speed) -> bool:
+        """Đi về `target` tối đa speed/60 m. Trả True nếu tới nơi trong bước này."""
+        dist = math.dist(m["pos"], target)
+        step = speed / TICK
+        if dist <= step + 1e-9:  # dung sai cộng dồn float: 240 bước × 1/60 m phải tới đúng 4 m
+            m["pos"] = [float(target[0]), float(target[1])]
+            return True
+        m["pos"] = [m["pos"][i] + (target[i] - m["pos"][i]) / dist * step for i in range(2)]
+        return False
+
+    def _monsters_step(self, events) -> bool:
+        """Cập nhật Cá Sấu theo id, rồi xét tối đa một hit. Trả True nếu người chơi ngất."""
+        fresh = set()  # vừa hết recoil: về patrol, xét phát hiện/chạm từ bước kế
+        for m in sort_by_id(self.monsters):
+            sp = self._species(m)
+            if m["state"] == "recoil":
+                step = sp["recoil_dist"] / sp["recoil_ticks"]
+                m["pos"] = [m["pos"][i] + m["recoil_dir"][i] * step for i in range(2)]
+                self._clamp_monster(m)
+                m["state_ticks_left"] -= 1
+                if m["state_ticks_left"] <= 0:
+                    m["state"], m["state_ticks_left"], m["recoil_dir"] = "patrol", 0, None
+                    fresh.add(m["id"])
+                continue
+            deep = self.pos[1] >= sp["depths"][0]
+            dist = math.dist(m["pos"], self.pos)
+            if m["state"] == "patrol" and deep and dist <= sp["detect_radius"]:
+                m["state"] = "chase"
+            elif m["state"] == "chase" and (dist > sp["exit_radius"] or not deep):
+                m["state"] = "patrol"
+            if m["state"] == "chase":
+                self._move_towards(m, self.pos, sp["chase_speed"])
+            elif self._move_towards(m, m["waypoints"][m["target_idx"]], sp["patrol_speed"]):
+                m["target_idx"] = 1 - m["target_idx"]  # đến nơi: đổi mục tiêu cho bước sau
+            self._clamp_monster(m)
+        if self.invuln_ticks > 0:
+            return False
+        hits = []
+        for m in sort_by_id(self.monsters):
+            sp = self._species(m)
+            d = math.dist(m["pos"], self.pos)
+            if (m["state"] != "recoil" and m["id"] not in fresh and d <= sp["hit_radius"]
+                    and self.pos[1] >= sp["depths"][0]):
+                hits.append((d, m))
+        if not hits:
+            return False
+        m = min(hits, key=lambda x: x[0])[1]  # gần nhất; hòa thì id nhỏ (đã duyệt theo id)
+        mo = self.t["monsters"]
+        self.hp = max(0, self.hp - 1)
+        n_lost = math.floor(len(self.hold) * mo["loss_ratio"])
+        lost = [self.hold.pop() for _ in range(n_lost)]  # LIFO: nhặt sau mất trước
+        self.invuln_ticks = int(mo["invuln_ticks"])
+        away = [m["pos"][i] - self.pos[i] for i in range(2)]
+        norm = math.hypot(*away)
+        m["recoil_dir"] = [away[0] / norm, away[1] / norm] if norm > 0 else [1.0, 0.0]
+        m["state"], m["state_ticks_left"] = "recoil", int(self._species(m)["recoil_ticks"])
+        events.append(("monster_hit", {"monster_id": m["id"], "hp": self.hp, "lost": lost, "pos": list(self.pos)}))
+        if self.hp > 0:
+            return False
+        rest = list(reversed(self.hold))
+        self.hold = []
+        events.append(("faint", {"cause": "monster", "lost": rest, "hp": 0}))
         self._finish("fainted", events)
         return True
 
