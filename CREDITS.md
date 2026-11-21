@@ -5,7 +5,7 @@ Không dùng asset ngoài. Hình trong game là hình khối 2D vẽ bằng canv
 
 ## Mã nguồn
 - Khung starter `chonoi/` và bộ test smoke do giảng viên lab cung cấp (repo `VinUni-AI20k/K5-L3B-LAB-Day12-AI-SDLC`).
-- Luật chơi, vòng ngày, cửa sổ chơi, benchmark và test của nhóm do Dương Minh Chiến và Trịnh Hưng Thịnh viết, có dùng trợ lý AI.
+- Luật chơi, vòng ngày, cửa sổ chơi, benchmark và test của nhóm do Dương Minh Chiến và Trịnh Hưng Thịnh viết, có dùng trợ lý AI. Phần này phát hành theo giấy phép MIT, xem [LICENSE](LICENSE). Khung starter của giảng viên không nằm trong giấy phép đó.
 
 ## Công cụ AI
 - Claude Code (Anthropic), dùng bởi Dương Minh Chiến.
