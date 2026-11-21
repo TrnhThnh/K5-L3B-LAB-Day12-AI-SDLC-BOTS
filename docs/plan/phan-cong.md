@@ -15,32 +15,32 @@ Nhóm có hai người nên mỗi người giữ hai module và hai vai. Chia th
 
 ### Bắt đầu (làm ngay)
 - [ ] Vào repo, *Settings → Collaborators*, thêm `duongchien147` với quyền Write. Kiểm repo đang để public.
-- [ ] `git pull`, rồi chạy `PYTHONPATH=tests:. python3 -m unittest discover -s tests -v` và thấy `OK` (51 test). Máy Windows không có `python3` thì xem mục Lệnh trong `AGENTS.md`.
-- [ ] Đọc `docs/contracts/README.md` (schema kho, sự kiện), `docs/clarify.md` và docstring đầu `chonoi/sim/quan.py`.
+- [x] `git pull`, rồi chạy `PYTHONPATH=tests:. python3 -m unittest discover -s tests -v` và thấy `OK` (51 test). Máy Windows không có `python3` thì xem mục Lệnh trong `AGENTS.md`.
+- [x] Đọc `docs/contracts/README.md` (schema kho, sự kiện), `docs/clarify.md` và docstring đầu `chonoi/sim/quan.py`.
 
 ### Phase 1: luật quán (`chonoi/sim/quan.py`)
 Số liệu lấy từ `tuning.quan` và `tuning.menu` trong `game.contract.json`, không ghi số thẳng vào code. Chỗ nào đề chưa rõ thì ghi vào `docs/clarify.md` rồi báo Chiến.
 
 Lát 3, khách:
-- [ ] Khách đến theo lịch: khách đầu ở `first_customer_tick`, sau đó cứ `customer_interval_s` có một khách. Cấp id bằng `self.ids.new(...)`, xếp vào bàn trống.
-- [ ] Khách chọn món nấu được từ `stock` theo `menu[*].recipe` và giữ chỗ nguyên liệu (`reserved`). Không có món nào nấu được thì phát `no_dish`.
-- [ ] Kiên nhẫn giảm theo `patience_s`. Hết kiên nhẫn thì phát `customer_left`, uy tín cộng `left_reputation_delta`, kẹp trong [`reputation_min`, `reputation_max`], trả lại nguyên liệu đã giữ.
-- [ ] Dựng khách sẵn từ `scenario.customers[]` và suy ra `reserved` (TODO ở dòng 40).
-- [ ] Bổ sung kiểm mâu thuẫn trong `chonoi/scenario.py`, ví dụ khách giữ chỗ nhiều hơn kho. Lỗi thì thoát mã 2.
+- [x] Khách đến theo lịch: khách đầu ở `first_customer_tick`, sau đó cứ `customer_interval_s` có một khách. Cấp id bằng `self.ids.new(...)`, xếp vào bàn trống.
+- [x] Khách chọn món nấu được từ `stock` theo `menu[*].recipe` và giữ chỗ nguyên liệu (`reserved`). Không có món nào nấu được thì phát `no_dish`.
+- [x] Kiên nhẫn giảm theo `patience_s`. Hết kiên nhẫn thì phát `customer_left`, uy tín cộng `left_reputation_delta`, kẹp trong [`reputation_min`, `reputation_max`], trả lại nguyên liệu đã giữ.
+- [x] Dựng khách sẵn từ `scenario.customers[]` và suy ra `reserved` (TODO ở dòng 40).
+- [x] Bổ sung kiểm mâu thuẫn trong `chonoi/scenario.py`, ví dụ khách giữ chỗ nhiều hơn kho. Lỗi thì thoát mã 2.
 
 Lát 4, bếp và phục vụ:
-- [ ] Mỗi tick tối đa một `interact`, chọn đối tượng theo thứ tự (khoảng cách, bếp trước bàn, id nhỏ), trong `interact_radius`.
-- [ ] Bếp: `cook_started`, nấu `cook_s` giây, xong thì `dish_ready`. Người chơi lấy món (`dish_picked`), cầm tối đa `carry_limit` món.
-- [ ] Bàn: `served`, khách ăn `eat_s` giây rồi `paid` với `price`. Có boa `tip_rate` và uy tín cộng `tip_reputation` khi kiên nhẫn còn từ `tip_min_patience_ratio` trở lên.
-- [ ] Cập nhật `money`, `earned`, `shift_earned`, `reputation`. Hết ca thì phát `quan_end` (đã có sẵn).
+- [x] Mỗi tick tối đa một `interact`, chọn đối tượng theo thứ tự (khoảng cách, bếp trước bàn, id nhỏ), trong `interact_radius`.
+- [x] Bếp: `cook_started`, nấu `cook_s` giây, xong thì `dish_ready`. Người chơi lấy món (`dish_picked`), cầm tối đa `carry_limit` món.
+- [x] Bàn: `served`, khách ăn `eat_s` giây rồi `paid` với `price`. Có boa `tip_rate` và uy tín cộng `tip_reputation` khi kiên nhẫn còn từ `tip_min_patience_ratio` trở lên.
+- [x] Cập nhật `money`, `earned`, `shift_earned`, `reputation`. Hết ca thì phát `quan_end` (đã có sẵn).
 - [ ] Điền `data` của các sự kiện quán vào bảng trong `docs/contracts/README.md`, nhắn Chiến xem lại.
-- [ ] Viết `tests/test_quan_rules.py` theo kiểu hộp đen như `tests/test_gather_rules.py`, mỗi luật ít nhất một test.
+- [x] Viết `tests/test_quan_rules.py` theo kiểu hộp đen như `tests/test_gather_rules.py`, mỗi luật ít nhất một test.
 
 QA:
 - [ ] Đọc lại `chonoi/sim/gather.py` và `tests/test_gather_rules.py` của Chiến, góp ý trong kênh nhóm hoặc qua comment commit.
-- [ ] Trước khi gắn tag, chạy toàn bộ test và skill `.agents/skills/check-contract`, lưu output vào `docs/proof/phase-1/`.
-- [ ] Điền các dòng `Q-xx` (luật quán) trong `docs/verification/phase-1.md`.
-- [ ] Ghi một dòng của mình vào `docs/standup.md` và `docs/ai-usage-log.md`.
+- [x] Trước khi gắn tag, chạy toàn bộ test và skill `.agents/skills/check-contract`, lưu output vào `docs/proof/phase-1/`.
+- [x] Điền các dòng `Q-xx` (luật quán) trong `docs/verification/phase-1.md`.
+- [x] Ghi một dòng của mình vào `docs/standup.md` và `docs/ai-usage-log.md`.
 
 ### Suốt lab
 - [ ] Viết skill thứ hai `.agents/skills/run-proof/SKILL.md`: chạy test và headless, lưu kết quả vào `docs/proof/phase-n/`. Thêm tên skill vào mục Skills trong `AGENTS.md` (nhắn Chiến).
