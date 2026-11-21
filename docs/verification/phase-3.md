@@ -10,8 +10,10 @@ Quyết định tích hợp: phát triển trên nhánh từ main đã có vòng
 | AC-P3-04 Giữ nguyên liệu và giữ lại | test_spoiled_reservations_reallocated_before_cooking, test_automatic_reservations_and_conflicts | Giữ tươi nhất, hòa theo id. Hàng ươn nhả trước tương tác; đơn không đủ chuyển unfulfillable. |
 | AC-P3-05 Khóa giá khi nấu | test_price_locks_at_cook_start_and_uses_each_ingredient | Gỏi có hai bông ở 70 và 80 điểm lúc nấu; giá 30, không đổi lúc chín. |
 | AC-P3-06 Kho không hợp lệ | test_invalid_inventory_files_exit_two | Kho đếm, id sai/trùng, kind lạ và fresh sai miền đều trả mã 2. |
-| AC-P3-07 HUD | chonoi/web/index.html, tests/test_live_ui.py | HUD lấy dữ liệu theo cá thể. Đã kiểm luồng trạng thái LiveGame; chưa kiểm bố cục trực quan. |
+| AC-P3-07 HUD | chonoi/web/index.html, tests/test_live_ui.py, [ảnh HUD sáng](../proof/phase-3/ui/hud-gather-fresh.png), [ảnh HUD quán](../proof/phase-3/ui/hud-quan-fresh.png), [scenario](../proof/phase-3/ui/hud-fresh.scenario.json) | Đạt. Chiến kiểm bằng trình duyệt: giỏ và kho quán hiện "tươi thấp nhất" và số món ươn. Khi kiểm, Chiến thấy dòng "Cần lấy" vẫn đếm hàng ươn (cá lóc 1/3 dù con cá đã ươn), đã sửa để chỉ đếm hàng còn dùng được (0/3). |
 
 Regression P1–P2 giữ các ca chuyển pha, pause, thời gian, thanh toán, LIFO và ghi file nguyên tử. Fixture và assertion dạng kho đếm được chuyển sang cá thể; kỳ vọng giá món mới nấu phản ánh một bước hao tươi trước tương tác. [Log toàn bộ suite](../proof/phase-3/unittest.txt).
 
 Chạy lại bằng `PYTHONPATH=tests:. python3 -m unittest discover -s tests -v`. Các mở rộng đặt bàn và dòng lũ nằm ngoài phạm vi lõi của nhóm hai người.
+
+Bảng tác động, quyết định đổi schema và thứ tự tích hợp: [ADR-0001](../adr/0001-kho-ca-the-v1.2.md).

@@ -295,10 +295,11 @@ function drawGather(w, h) {
   text(`Giỏ ${(snap.hold || []).length}/${snap.hold_capacity}: ` + itemsLine(have) + quality(snap.hold), 16, h - bottom + 30);
   const need = snap.day_plan && snap.day_plan.ingredients;
   if (need) {
+    const usable = counts((snap.hold || []).filter((i) => i.fresh >= snap.spoiled_below));  // hàng ươn không nấu được
     let x = 16;
     x += text("Cần lấy:", x, h - bottom + 64, { color: "#ffe082" }) + 10;
     Object.keys(need).forEach((k) => {
-      const got = have[k] || 0, ok = got >= need[k];
+      const got = usable[k] || 0, ok = got >= need[k];
       x += text(`${kn(k)} ${got}/${need[k]}`, x, h - bottom + 64, { color: ok ? "#a5d6a7" : "#ffffff" }) + 18;
     });
   } else text("WASD bơi · E hái/cập bến · Space bắt cá · Esc/P tạm dừng", 16, h - bottom + 64, { color: "#9fb3c0" });
