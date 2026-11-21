@@ -101,15 +101,15 @@ Bốn vai của Ticket-04 chia cho hai người. Chiến: Đóng gói + Release/
 - [x] `bench_cmd` (`chonoi/bench.py`): cảnh buổi sáng seed 42, Út Sen đứng ở bến, cá bơi, Cá Sấu, độ tươi; render 1280×720; làm nóng 3 s, đo `--duration` s; ghi `bench.json` 5 trường. Lưu artifact vào `docs/proof/phase-4/`.
 - [x] Cảnh báo dễ nhận biết: thủy quái gần, oxy sắp hết, khách sắp giận (chữ và biểu tượng); chế độ tương phản cao; chơi thử cả ba cảnh báo ở chế độ đó, chụp ảnh.
 - [x] README: cách chạy từ clone sạch ≤ 3 lệnh, yêu cầu môi trường, điều khiển, cách tính điểm, lệnh test, headless, bench, soak; mục "Sáng tạo của nhóm" nếu có. Thử clone sạch.
-- [ ] CREDITS.md, LICENSE (MIT cho phần nhóm viết, đã thống nhất); release notes; gắn tag `phase-4` và tạo GitHub Release `v1.0.0` kèm bản đóng gói, cùng trỏ một commit.
+- [x] CREDITS.md, LICENSE (MIT cho phần nhóm viết, đã thống nhất); release notes; gắn tag `phase-4` và tạo GitHub Release `v1.0.0` kèm bản đóng gói, cùng trỏ một commit.
 - [x] `docs/members/duongchien147.md`.
 
 ### Việc của Thịnh
-- [ ] `soak_cmd` (`chonoi/soak.py`): chạy 10 Ngày trong một tiến trình bằng bot tất định, kế hoạch D1–D5 lặp ở Ngày 6–10, ghi `soak.json` (`days`, `days_completed`, `crashes`, `results[]`, `duration_s`). Chạy hai lần cùng seed để so phần gameplay.
-- [ ] Chạy regression P1–P3 trên commit bàn giao, lưu log; viết `docs/verification/phase-4.md` (AC-P4-xx → bằng chứng → kết quả).
+- [x] `soak_cmd` (`chonoi/soak.py`): chạy 10 Ngày trong một tiến trình bằng bot tất định, kế hoạch D1–D5 lặp ở Ngày 6–10, ghi `soak.json` (`days`, `days_completed`, `crashes`, `results[]`, `duration_s`). Chạy hai lần cùng seed để so phần gameplay.
+- [x] Chạy regression P1–P3 trên commit bàn giao, lưu log; viết `docs/verification/phase-4.md` (AC-P4-xx → bằng chứng → kết quả).
 - [ ] Rà CHANGELOG theo từng phase.
-- [ ] Điều phối retro: mở đầu bằng hành động đã chốt ở retro P2, ghi điều tốt, điều cần sửa, hành động tiếp theo, một lỗi AI và cách xác minh (`docs/retro.md`).
-- [ ] `docs/members/TrnhThnh.md`.
+- [x] Điều phối retro: mở đầu bằng hành động đã chốt ở retro P2, ghi điều tốt, điều cần sửa, hành động tiếp theo, một lỗi AI và cách xác minh (`docs/retro.md`).
+- [x] `docs/members/TrnhThnh.md`.
 
 ### Ghép
 - Thịnh làm trên nhánh thì báo Chiến khi xong để gộp trước khi gắn tag. Tag `phase-4` và Release `v1.0.0` gắn sau khi cả hai phần đã vào `main` và CI xanh.
