@@ -1,12 +1,8 @@
-"""Buổi tối — Mở Quán. KHUNG: đi lại, chặn biên, đồng hồ, kho nạp từ file/scenario.
+"""Buổi tối — lịch khách, bếp, phục vụ và thanh toán."""
 
-Nhóm viết tiếp (PRD-0 mục F, Quán):
-  TODO(nhóm, lát 3): khách đến theo lịch, chọn món nấu được, giữ chỗ nguyên liệu, kiên nhẫn,
-                     bỏ đi (customer_left), no_dish, vòng đời khách.
-  TODO(nhóm, lát 4): interact tại bếp/bàn (cook_started, dish_ready, dish_picked, served),
-                     ăn xong trả tiền (paid), boa, uy tín, hết ca (quan_end).
-"""
+from math import dist
 
+from ..errors import BadInput
 from ..ids import sort_by_id
 from .ramp import ramp_velocity
 
@@ -37,10 +33,34 @@ class QuanSim:
                             cook_ticks_left=s.get("cook_ticks_left", 0), ready_ticks=s.get("ready_ticks", 0))
                        for s in self._merge(t["stoves"], scenario.get("stoves", []))]
         self.tables = self._merge(t["tables"], scenario.get("tables", []))
-        # TODO(nhóm): khách dựng sẵn từ scenario (customers[]) và suy ra giữ chỗ (reserved).
-        self.customers = [dict(c, reserved=c.get("reserved", {})) for c in scenario.get("customers", [])]
-        for e in self.customers:
-            ids.reserve(e["id"])
+        self.tick = 0
+        self.arrivals = scenario.get("random_customers", True)
+        self.patience = round(t["patience_s"] * TICK)
+        self.customers = sort_by_id([dict(c) for c in scenario.get("customers", [])])
+        for c in self.customers:
+            ids.reserve(c["id"])
+            c.setdefault("state", "waiting")
+            c.setdefault("patience_ticks_left", self.patience)
+            recipe = self.menu[c["dish_id"]]["recipe"] if c["state"] == "waiting" else {}
+            if c.get("reserved", recipe) != recipe:
+                raise BadInput("reserved không khớp trạng thái đơn")
+            c["reserved"] = dict(recipe)
+        if any(self._available(k) < 0 for k in {k for c in self.customers for k in c["reserved"]}):
+            raise BadInput("tổng nguyên liệu giữ chỗ vượt kho")
+        # Mỗi món trên bếp/trên tay thuộc đúng một đơn assigned.
+        self.owners = {}
+        assigned = [c for c in self.customers if c["state"] == "assigned"]
+        slots = [(s["id"], s["dish"]) for s in self.stoves if s["dish"]]
+        if self.hand:
+            slots.append(("hand", self.hand))
+        for slot, dish in slots:
+            owner = next((c for c in assigned if c["dish_id"] == dish), None)
+            if owner is None:
+                raise BadInput("món thiếu đơn assigned")
+            self.owners[slot] = owner["id"]
+            assigned.remove(owner)
+        if assigned:
+            raise BadInput("đơn assigned thiếu món")
         self.money = 0
         self.earned = 0
         self.shift_earned = 0
@@ -72,16 +92,114 @@ class QuanSim:
     def step(self, inp):
         events = []
         self.time_left_ticks = max(0, self.time_left_ticks - 1)
-        # TODO(nhóm): giảm kiên nhẫn / nấu / ăn; bếp chín -> ready; xử lý khách theo thứ tự PRD-0 mục F.
+        self.tick += 1
+        self._advance(events)
         self._move(inp)
-        # TODO(nhóm): tối đa MỘT interact, chọn đối tượng theo (khoảng cách, bếp trước bàn, id).
-        # TODO(nhóm): khách mới theo lịch (first_customer_tick, customer_interval_s), no_dish.
+        if inp.pressed("interact"):
+            self._interact(events)
+        elapsed = self.tick - self.t["first_customer_tick"]
+        if self.arrivals and elapsed >= 0 and elapsed % round(self.t["customer_interval_s"] * TICK) == 0:
+            self._arrive(events)
         if self.time_left_ticks <= 0:
             self.done = True
             self.reason = "time"
             events.append(("quan_end", {"reason": "time", "money": self.money, "earned": self.earned,
                                         "shift_earned": self.shift_earned, "reputation": self.reputation}))
         return events
+
+    def _available(self, kind):
+        return self.stock.get(kind, 0) - sum(c["reserved"].get(kind, 0) for c in self.customers)
+
+    def _arrive(self, events):
+        occupied = {c["table_id"] for c in self.customers}
+        table = next((t for t in self.tables if t["id"] not in occupied), None)
+        if table is None:
+            return
+        ident = self.ids.new("C")
+        choices = [dish for dish, item in sorted(self.menu.items())
+                   if all(self._available(k) >= n for k, n in item["recipe"].items())]
+        if not choices:
+            events.append(("no_dish", {"customer_id": ident, "table_id": table["id"]}))
+            return
+        dish = self.rng.get("customer_dish").choice(choices)
+        self.customers.append({"id": ident, "table_id": table["id"], "dish_id": dish,
+                               "state": "waiting", "patience_ticks_left": self.patience,
+                               "reserved": dict(self.menu[dish]["recipe"])})
+
+    def _reputation(self, delta):
+        self.reputation = min(self.t["reputation_max"], max(self.t["reputation_min"], self.reputation + delta))
+
+    def _advance(self, events):
+        for s in self.stoves:
+            if s["state"] == "ready":
+                s["ready_ticks"] += 1
+            elif s["state"] == "cooking":
+                s["cook_ticks_left"] -= 1
+                if s["cook_ticks_left"] == 0:
+                    s["state"] = "ready"
+                    events.append(("dish_ready", {"stove_id": s["id"], "dish_id": s["dish"]}))
+        for c in sort_by_id(self.customers):
+            data = {"customer_id": c["id"], "dish_id": c["dish_id"]}
+            if c["state"] == "eating":
+                c["eat_ticks_left"] -= 1
+                if c["eat_ticks_left"] > 0:
+                    continue
+                amount = c["price"] + c["tip"]
+                self.money += amount
+                self.earned += amount
+                self.shift_earned += amount
+                if c["tip"]:
+                    self._reputation(self.t["tip_reputation"])
+                events.append(("paid", dict(data, price=c["price"], tip=c["tip"])))
+            else:
+                c["patience_ticks_left"] -= 1
+                if c["patience_ticks_left"] > 0:
+                    continue
+                self._reputation(self.t["left_reputation_delta"])
+                for s in self.stoves:
+                    if self.owners.get(s["id"]) == c["id"]:
+                        self.owners.pop(s["id"])
+                        s.update(state="idle", dish=None, cook_ticks_left=0, ready_ticks=0)
+                if self.owners.get("hand") == c["id"]:
+                    self.owners.pop("hand")
+                    self.hand = None
+                events.append(("customer_left", data))
+            self.customers.remove(c)
+
+    def _interact(self, events):
+        # Stable min keeps the stove first and then the natural ID order on ties.
+        targets = self.stoves + self.tables
+        target = min(targets, key=lambda e: dist(self.pos, e["pos"]), default=None)
+        if target is None or dist(self.pos, target["pos"]) > self.t["interact_radius"]:
+            return
+        ident = target["id"]
+        if target in self.stoves:
+            if target["state"] == "ready" and self.hand is None and self.t["carry_limit"] >= 1:
+                self.hand = target["dish"]
+                self.owners["hand"] = self.owners.pop(ident)
+                target.update(state="idle", dish=None, ready_ticks=0)
+                events.append(("dish_picked", {"stove_id": ident, "dish_id": self.hand}))
+            elif target["state"] == "idle":
+                c = next((c for c in sort_by_id(self.customers) if c["state"] == "waiting"), None)
+                if c is None:
+                    return
+                for k, n in c["reserved"].items():
+                    self.stock[k] -= n
+                c.update(state="assigned", reserved={})
+                dish = c["dish_id"]
+                self.owners[ident] = c["id"]
+                target.update(state="cooking", dish=dish, cook_ticks_left=round(self.menu[dish]["cook_s"] * TICK))
+                events.append(("cook_started", {"customer_id": c["id"], "stove_id": ident, "dish_id": dish}))
+            return
+        c = next((c for c in self.customers if c["table_id"] == ident), None)
+        if c and self.owners.get("hand") == c["id"]:
+            price = self.menu[self.hand]["price"]
+            qualifies = c["patience_ticks_left"] >= self.patience * self.t["tip_min_patience_ratio"]
+            tip = round(price * self.t["tip_rate"]) if qualifies else 0
+            c.update(state="eating", price=price, tip=tip, eat_ticks_left=round(self.t["eat_s"] * TICK))
+            events.append(("served", {"customer_id": c["id"], "dish_id": self.hand, "table_id": ident}))
+            self.hand = None
+            self.owners.pop("hand")
 
     def _move(self, inp):
         speed = self.t["walk_speed"]

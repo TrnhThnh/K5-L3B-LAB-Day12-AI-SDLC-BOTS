@@ -161,3 +161,34 @@ def _validate_quan(b, tuning):
             raise BadInput(f"customers.{c['id']}: table_id phải là bàn có thật")
     if len(table_ids) != len(set(table_ids)):
         raise BadInput("hai khách cùng bàn")
+
+    menu = tuning["menu"]
+    if "random_customers" in b and not isinstance(b["random_customers"], bool):
+        raise BadInput("random_customers phải là boolean")
+    if "reputation" in b and not (_num(b["reputation"]) and
+            tuning["quan"]["reputation_min"] <= b["reputation"] <= tuning["quan"]["reputation_max"]):
+        raise BadInput("reputation ngoài khoảng")
+    if b.get("hand") is not None and b["hand"] not in tuple(menu):
+        raise BadInput("hand phải là id món")
+    for group in ("tables", "stoves"):
+        for item in b.get(group, []):
+            if "pos" in item:
+                _pos(group, item["pos"], qb, axes=("x", "z"))
+    for s in b.get("stoves", []):
+        state = s.get("state", "idle")
+        if state not in ("idle", "cooking", "ready"):
+            raise BadInput("trạng thái bếp không hợp lệ")
+        for key in ("ready_ticks", "cook_ticks_left"):
+            _nonneg_int(key, s.get(key, 0))
+        if ((state == "idle" and s.get("dish") is not None) or
+                (state != "idle" and s.get("dish") not in tuple(menu)) or
+                (state == "cooking") != (s.get("cook_ticks_left", 0) > 0)):
+            raise BadInput("món hoặc bộ đếm không khớp trạng thái bếp")
+    for c in b.get("customers", []):
+        if c.get("dish_id") not in tuple(menu) or c.get("state", "waiting") not in ("waiting", "assigned", "eating"):
+            raise BadInput("món hoặc trạng thái khách không hợp lệ")
+        if "patience_ticks_left" in c:
+            _nonneg_int("patience_ticks_left", c["patience_ticks_left"])
+        if c.get("state") == "eating":
+            for key in ("price", "tip", "eat_ticks_left"):
+                _nonneg_int(key, c.get(key))

@@ -9,3 +9,5 @@
 | 5 | 2026-11-21, Phase 1 | Bắt xong thì đàn cá còn lại không? | Giả định: đàn cá bị xóa khỏi danh sách. Khung có ghi cá bơi và sinh thêm là việc của phase sau. | Chiến |
 | 6 | 2026-11-21, Phase 1 | `data` của các sự kiện gather (choke, faint, gather, fish_caught, hold_full...) gồm trường nào? | Chưa thấy trong đề nên nhóm tự đặt, ghi ở `docs/contracts/README.md`. Khi có PRD-0 thì đối chiếu lại. | Chiến (Integrator) |
 | 7 | 2026-11-21, Phase 1 | `invuln_ticks` dùng vào việc gì ở Phase 1? | Giả định: Phase 1 chỉ đếm ngược, `choke` không xét `invuln_ticks`. Để dành cho các đòn đánh ở phase sau. | Chiến |
+| 8 | 2026-11-21, Phase 1 | Kho giữ chỗ và món của khách bỏ đi xử lý thế nào? | Giả định giữ chỗ trong kho tới khi bắt đầu nấu. Khách bỏ đi trước khi nấu thì giải phóng phần giữ chỗ. Sau khi nấu thì bỏ món của khách, không hoàn nguyên liệu. | Thịnh, chờ PO đối chiếu PRD-0 |
+| 9 | 2026-11-21, Phase 1 | Thứ tự trong tick và thanh toán? | Bếp và khách đếm ngược trước tương tác, khách mới đến sau tương tác. Hết bàn thì bỏ lượt. Chốt boa lúc phục vụ, cộng tiền và uy tín khi ăn xong. | Thịnh, chờ PO đối chiếu PRD-0 |
