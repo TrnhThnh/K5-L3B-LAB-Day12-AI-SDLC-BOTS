@@ -1,0 +1,2 @@
+gather seed 7, 2000 ticks max, repeated twice: identical SHA-256 64eaea57977da7122bc9733c4927baf67b99a007c7b9582e3b196e97c57427ce
+quan seed 7, 2000 ticks max, repeated twice: identical SHA-256 2c120c94ee37b664e5ff371a3b89fc7a741383f1c52d3b212d51610d7b60f52e
