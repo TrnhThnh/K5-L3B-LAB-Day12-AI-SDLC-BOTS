@@ -1,0 +1,13 @@
+{"frames": [
+  {"tick": 0, "move": [1, 0]},
+  {"tick": 195, "move": [0, 1]},
+  {"tick": 270, "move": [0, 0]},
+  {"tick": 280, "catch": true},
+  {"tick": 281, "catch": false, "move": [0, -1]},
+  {"tick": 365, "move": [-1, 0]},
+  {"tick": 408, "move": [0, 0]},
+  {"tick": 415, "interact": true},
+  {"tick": 416, "interact": false, "move": [-1, 0]},
+  {"tick": 560, "move": [0, 0]},
+  {"tick": 570, "interact": true}
+]}
