@@ -21,20 +21,20 @@ Nhóm có hai người nên mỗi người giữ hai module và hai vai. Chia th
 ### Phase 1: luật quán (`chonoi/sim/quan.py`)
 Số liệu lấy từ `tuning.quan` và `tuning.menu` trong `game.contract.json`, không ghi số thẳng vào code. Chỗ nào đề chưa rõ thì ghi vào `docs/clarify.md` rồi báo Chiến.
 
-Lát 3, khách:
-- [ ] Khách đến theo lịch: khách đầu ở `first_customer_tick`, sau đó cứ `customer_interval_s` có một khách. Cấp id bằng `self.ids.new(...)`, xếp vào bàn trống.
-- [ ] Khách chọn món nấu được từ `stock` theo `menu[*].recipe` và giữ chỗ nguyên liệu (`reserved`). Không có món nào nấu được thì phát `no_dish`.
-- [ ] Kiên nhẫn giảm theo `patience_s`. Hết kiên nhẫn thì phát `customer_left`, uy tín cộng `left_reputation_delta`, kẹp trong [`reputation_min`, `reputation_max`], trả lại nguyên liệu đã giữ.
-- [ ] Dựng khách sẵn từ `scenario.customers[]` và suy ra `reserved` (TODO ở dòng 40).
-- [ ] Bổ sung kiểm mâu thuẫn trong `chonoi/scenario.py`, ví dụ khách giữ chỗ nhiều hơn kho. Lỗi thì thoát mã 2.
+Lát 3, khách (Chiến làm thay ở Phase 1):
+- [x] Khách đến theo lịch: khách đầu ở `first_customer_tick`, sau đó cứ `customer_interval_s` có một khách. Cấp id bằng `self.ids.new(...)`, xếp vào bàn trống.
+- [x] Khách chọn món nấu được từ `stock` theo `menu[*].recipe` và giữ chỗ nguyên liệu (`reserved`). Không có món nào nấu được thì phát `no_dish`.
+- [x] Kiên nhẫn giảm theo `patience_s`. Hết kiên nhẫn thì phát `customer_left`, uy tín cộng `left_reputation_delta`, kẹp trong [`reputation_min`, `reputation_max`], trả lại nguyên liệu đã giữ.
+- [x] Dựng khách sẵn từ `scenario.customers[]` và suy ra `reserved`.
+- [x] Bổ sung kiểm mâu thuẫn trong `chonoi/scenario.py`, ví dụ khách giữ chỗ nhiều hơn kho. Lỗi thì thoát mã 2.
 
-Lát 4, bếp và phục vụ:
-- [ ] Mỗi tick tối đa một `interact`, chọn đối tượng theo thứ tự (khoảng cách, bếp trước bàn, id nhỏ), trong `interact_radius`.
-- [ ] Bếp: `cook_started`, nấu `cook_s` giây, xong thì `dish_ready`. Người chơi lấy món (`dish_picked`), cầm tối đa `carry_limit` món.
-- [ ] Bàn: `served`, khách ăn `eat_s` giây rồi `paid` với `price`. Có boa `tip_rate` và uy tín cộng `tip_reputation` khi kiên nhẫn còn từ `tip_min_patience_ratio` trở lên.
-- [ ] Cập nhật `money`, `earned`, `shift_earned`, `reputation`. Hết ca thì phát `quan_end` (đã có sẵn).
-- [ ] Điền `data` của các sự kiện quán vào bảng trong `docs/contracts/README.md`, nhắn Chiến xem lại.
-- [ ] Viết `tests/test_quan_rules.py` theo kiểu hộp đen như `tests/test_gather_rules.py`, mỗi luật ít nhất một test.
+Lát 4, bếp và phục vụ (Chiến làm thay ở Phase 1):
+- [x] Mỗi tick tối đa một `interact`, chọn đối tượng theo thứ tự (khoảng cách, bếp trước bàn, id nhỏ), trong `interact_radius`.
+- [x] Bếp: `cook_started`, nấu `cook_s` giây, xong thì `dish_ready`. Người chơi lấy món (`dish_picked`), cầm tối đa `carry_limit` món.
+- [x] Bàn: `served`, khách ăn `eat_s` giây rồi `paid` với `price`. Có boa `tip_rate` và uy tín cộng `tip_reputation` khi kiên nhẫn còn từ `tip_min_patience_ratio` trở lên.
+- [x] Cập nhật `money`, `earned`, `shift_earned`, `reputation`. Hết ca thì phát `quan_end` (đã có sẵn).
+- [x] Điền `data` của các sự kiện quán vào bảng trong `docs/contracts/README.md`, nhắn Chiến xem lại.
+- [x] Viết `tests/test_quan_rules.py` theo kiểu hộp đen như `tests/test_gather_rules.py`, mỗi luật ít nhất một test.
 
 QA:
 - [ ] Đọc lại `chonoi/sim/gather.py` và `tests/test_gather_rules.py` của Chiến, góp ý trong kênh nhóm hoặc qua comment commit.
@@ -56,7 +56,7 @@ QA:
 - [x] Lát 1–2 gather trong `chonoi/sim/gather.py`, 19 test trong `tests/test_gather_rules.py`.
 - [x] Proof demo gather, skill `check-contract`, verification phần gather.
 - [ ] Hỏi giảng viên chuyện nhóm 2 người, ghi câu trả lời vào clarify #1.
-- [ ] Khi lab board mở PRD-0: đối chiếu clarify #2 đến #7, đổi mã `G-xx` sang mã AC thật.
+- [x] Khi lab board mở PRD-0: đối chiếu clarify #2 đến #7 và sửa 3 giả định sai (#3, #4, #6). PRD-0 không đánh mã AC nên giữ mã `G-xx`.
 - [ ] `client/ui`: cửa sổ `chonoi.live` hiện sự kiện (giỏ đầy, ngạt, ngất...).
 - [ ] Đọc lại phần quán của Thịnh, ghép code, chạy test rồi gắn tag `phase-1`.
 
@@ -65,6 +65,32 @@ QA:
 - [ ] Phase 2–4: phần đề mới thuộc buổi sáng, mode mới hoặc giao diện thì Chiến nhận.
 - [ ] Viết mục "Sáng tạo của nhóm" trong README nếu làm thêm.
 - [ ] Phase 4: viết `docs/members/duongchien147.md`, retro cuối cùng Thịnh, chuẩn bị demo.
+
+## Phase 2 (Ticket-02, Test Contract v1.1, hạn tag `phase-2` lúc 1:55)
+
+Ticket-02 gợi ý 4 lát: (1) số chuẩn và cá bơi/sinh, (2) Cá Sấu, Máu và ngất, (3) 2 bếp/4 bàn, 6 món và kế hoạch ngày, (4) day, Shop, pause, menu và HUD. Nhóm 2 người chia như sau: Chiến giữ buổi sáng và vòng ngày, Thịnh giữ buổi tối và Shop. Phần nào trong bảng dưới có thứ tự thì làm từ trên xuống, vì test ẩn chấm headless trước, giao diện sau.
+
+Điều kiện trước: luật quán Phase 1 đã xong (Chiến làm thay). Thịnh bắt đầu Phase 2 bằng việc đọc `chonoi/sim/quan.py` và `tests/test_quan_rules.py`.
+
+### Việc của Chiến
+- [ ] P2-A, đầu phase: chuyển `game.contract.json` sang `contract_version: "1.1"` với số chuẩn ở Ticket-02 mục 1 và mục 4.1: thêm khóa cá (`fish_speed`, `fish_turn_ticks`, `fish_max`, `fish_spawn_*`, `fish_x`, `fish_depths`, `fish_weights`), 8 đàn `fish_initial`, nút N5/N6 kèo nèo, `ca_keo`, `gather.monsters`, `quan` thêm B2 và T2–T4, `menu` 6 món, `day_plan` D1–D5, `shop`. Sửa phần kiểm tra trong `chonoi/contract.py`, `chonoi/inventory.py` (6 nguyên liệu) và `chonoi/scenario.py` cho v1.1. Đây là file khung, sửa xong báo Thịnh vì ảnh hưởng cả quán.
+- [ ] Lát 1: cá bơi 1.5 m/s, đổi hướng theo seed mỗi 120 bước, phản xạ ở mép, sinh cá mỗi 360 tick (trần 12 đàn, trọng số loài), sự kiện `fish_spawned`, trường `age_ticks`.
+- [ ] Lát 2: Cá Sấu M1 (M2 từ Ngày 3) với patrol, chase, recoil. Cú chạm làm mất 1 Máu, rơi `floor(n/2)` món theo LIFO, bất tử 90 tick; sự kiện `monster_hit`, `faint` với `cause: "monster"`.
+- [ ] Lát 4a: `--mode day` và `--days`, vòng pha `day_start → day_plan → phase_start(gather) → quan → shop`, bàn giao kho trong bộ nhớ, giữ tiền, uy tín và cấp qua các Ngày, `active_upgrades` áp từ Ngày kế. `pause`/`resumed` ở cả ba mode.
+- [ ] Lát 4b, nếu còn giờ: HUD, menu và màn hình DayIntro, EveningIntro, DayResult trên `chonoi.live`.
+- [ ] Smoke `day --days 1`, chạy nhiều Ngày để kiểm nâng cấp, gắn tag `phase-2`.
+
+### Việc của Thịnh
+- [x] ~~Xong luật quán Phase 1 (lát 3–4)~~: Chiến đã làm thay (`chonoi/sim/quan.py`, `tests/test_quan_rules.py`). Thịnh đọc lại và góp ý.
+- [ ] Lát 3: quán với 2 bếp, 4 bàn, 6 món (đã khai trong contract ở P2-A, code đọc theo dữ liệu nên không cần ghi số). Khách đến lúc tick 120 rồi cứ mỗi 900 tick, ngồi bàn trống id nhỏ nhất. Trong `day`, lọc menu theo món của kế hoạch Ngày trước khi xét nguyên liệu.
+- [ ] Lát 4 phần Shop: `buy` (oxygen, hp), `bought`, `buy_failed` (funds, max_level, unknown), `shop_done`, tự đóng sau `shop.max_ticks`, `shop_end`. Tiền trừ vào `money`, giữ `earned`. Viết hàm Shop riêng để Chiến gọi từ vòng ngày.
+- [ ] Phút 20: smoke tích hợp `gather --inventory-out` rồi `quan --inventory`, lưu `docs/proof/phase-2/integration.*`.
+- [ ] Chạy lại toàn bộ test Phase 1 với số chuẩn (regression). Test nào phải đổi thì ghi lý do trong commit.
+- [ ] `docs/verification/phase-2.md`, retro nhanh trong `docs/retro.md` (phút 45–50), ghi standup và ai-usage-log.
+
+### Ghép giữa hai người
+- Hai người chốt ngay đầu phase giao diện Chiến gọi sang quán và Shop trong vòng ngày: dựng `QuanSim` với kho trong bộ nhớ, tiền và uy tín đầu ca; dựng Shop với `money` và cấp hiện tại. Ghi vào `docs/contracts/README.md`.
+- Mở rộng (Lao, vợt, rắn...) không bắt buộc với nhóm dưới 5 người, nên bỏ qua.
 
 ## Giờ chốt
 

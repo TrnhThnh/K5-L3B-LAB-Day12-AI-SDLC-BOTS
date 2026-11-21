@@ -1,8 +1,10 @@
 test_catch_school (test_gather_rules.Catch.test_catch_school) ... ok
 test_cooldown_blocks_second_catch (test_gather_rules.Catch.test_cooldown_blocks_second_catch) ... ok
 test_full_hold_keeps_fish (test_gather_rules.Catch.test_full_hold_keeps_fish) ... ok
+test_miss_sets_no_cooldown (test_gather_rules.Catch.test_miss_sets_no_cooldown) ... ok
 test_no_catch_at_surface (test_gather_rules.Catch.test_no_catch_at_surface) ... ok
-test_partial_fill_then_hold_full (test_gather_rules.Catch.test_partial_fill_then_hold_full) ... ok
+test_not_enough_room_keeps_school_and_cooldown (test_gather_rules.Catch.test_not_enough_room_keeps_school_and_cooldown)
+PRD-0 F: thiếu chỗ cho cả đàn thì hold_full, giữ đàn, không đặt hồi chiêu, không thử đàn khác. ... ok
 test_full_run_same_bytes (test_gather_rules.Determinism.test_full_run_same_bytes) ... ok
 test_dock_wins_over_harvest (test_gather_rules.Harvest.test_dock_wins_over_harvest) ... ok
 test_harvest_ready_node_then_regrow (test_gather_rules.Harvest.test_harvest_ready_node_then_regrow) ... ok
@@ -25,6 +27,19 @@ test_id_sorting (test_python_starter_units.Units.test_id_sorting) ... ok
 test_input_edges_and_inherit (test_python_starter_units.Units.test_input_edges_and_inherit) ... ok
 test_live_inputs_keep_fast_tap_edge (test_python_starter_units.Units.test_live_inputs_keep_fast_tap_edge) ... ok
 test_session_steps_gather_and_dock (test_python_starter_units.Units.test_session_steps_gather_and_dock) ... ok
+test_closing_pays_eaters_and_releases_waiters (test_quan_rules.Closing.test_closing_pays_eaters_and_releases_waiters) ... ok
+test_waiting_customer_leaves_without_penalty_at_close (test_quan_rules.Closing.test_waiting_customer_leaves_without_penalty_at_close) ... ok
+test_first_customer_reserves_recipe (test_quan_rules.Customers.test_first_customer_reserves_recipe) ... ok
+test_no_dish_when_nothing_cookable (test_quan_rules.Customers.test_no_dish_when_nothing_cookable) ... ok
+test_no_free_table_skips_turn (test_quan_rules.Customers.test_no_free_table_skips_turn) ... ok
+test_patience_runs_out (test_quan_rules.Customers.test_patience_runs_out) ... ok
+test_conflicts_exit_2 (test_quan_rules.Fixtures.test_conflicts_exit_2) ... ok
+test_full_shift_deterministic (test_quan_rules.FullShift.test_full_shift_deterministic) ... ok
+test_cook_ready_pick (test_quan_rules.Kitchen.test_cook_ready_pick) ... ok
+test_idle_stove_without_order_does_nothing (test_quan_rules.Kitchen.test_idle_stove_without_order_does_nothing) ... ok
+test_hand_without_matching_order_exit_2 (test_quan_rules.Serving.test_hand_without_matching_order_exit_2) ... ok
+test_no_tip_below_ratio (test_quan_rules.Serving.test_no_tip_below_ratio) ... ok
+test_serve_eat_pay_with_tip (test_quan_rules.Serving.test_serve_eat_pay_with_tip) ... ok
 test_con_01_ticks_zero_and_end_line (test_smoke_p1.Contract.test_con_01_ticks_zero_and_end_line) ... ok
 test_con_02_deterministic_bytes (test_smoke_p1.Contract.test_con_02_deterministic_bytes) ... ok
 test_con_03_bad_input_exit_2 (test_smoke_p1.Contract.test_con_03_bad_input_exit_2) ... ok
@@ -55,6 +70,6 @@ test_too_few_members (test_team_check.TeamCheck.test_too_few_members) ... ok
 test_wrong_size_duplicate_and_outsider (test_team_check.TeamCheck.test_wrong_size_duplicate_and_outsider) ... ok
 
 ----------------------------------------------------------------------
-Ran 51 tests in 8.964s
+Ran 65 tests in 10.729s
 
 OK
