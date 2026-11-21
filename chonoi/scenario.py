@@ -8,7 +8,7 @@ phải có đúng một món, khách eating thiếu giá/tip...) — xem PRD-0 m
 import json
 
 from .errors import BadInput
-from .inventory import KINDS_P1, validate_items
+from .inventory import KINDS, validate_items
 
 GATHER_KEYS = {"player", "hold", "nodes", "fish", "random_fish", "time_left_ticks"}
 GATHER_PLAYER_KEYS = {"pos", "vel", "heading_deg", "hp", "oxygen_ticks", "zero_oxy_ticks",
@@ -91,7 +91,7 @@ def _validate_gather(b, tuning):
         raise BadInput("random_fish phải là boolean")
     if "hold" in b:
         h = b["hold"]
-        if not isinstance(h, list) or any(k not in KINDS_P1 for k in h):
+        if not isinstance(h, list) or any(k not in KINDS for k in h):
             raise BadInput("hold phải là mảng id nguyên liệu hợp lệ")
         if len(h) > g["hold_capacity"]:
             raise BadInput("hold vượt sức chứa")
@@ -187,6 +187,7 @@ def _validate_quan(b, tuning):
     for c in b.get("customers", []):
         if c.get("dish_id") not in tuple(menu) or c.get("state", "waiting") not in ("waiting", "assigned", "eating"):
             raise BadInput("món hoặc trạng thái khách không hợp lệ")
+        _nonneg_int("order_tick", c.get("order_tick", 0))
         if "patience_ticks_left" in c:
             _nonneg_int("patience_ticks_left", c["patience_ticks_left"])
         if c.get("state") == "eating":

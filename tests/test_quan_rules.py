@@ -80,6 +80,28 @@ class QuanRules(unittest.TestCase):
             self.assertEqual(len(events(rows)), starts)
             self.assertEqual(len(events(rows, "cook_started")), starts)
 
+    def test_close_pays_eaters_and_releases_waiting_orders(self):
+        rows = self.simulate({"time_left_ticks": 1, "customers": [
+            dict(CUSTOMER, state="eating", eat_ticks_left=50, price=60, tip=12)]}, 1)
+        self.assertEqual([e["name"] for e in events(rows)], ["paid", "quan_end"])
+        self.assertEqual(snapshots(rows)[-1]["shift_earned"], 72)
+        for patience in (1, 50):
+            rows = self.simulate({"time_left_ticks": 1, "stock": ITEM["recipe"],
+                "customers": [dict(CUSTOMER, patience_ticks_left=patience)]}, 1)
+            end = snapshots(rows)[-1]
+            self.assertEqual(end["customers"], [])
+            self.assertEqual(end["available_stock"], ITEM["recipe"])
+            self.assertEqual(end["reputation"], Q["reputation_initial"])
+
+    def test_close_discards_assigned_dish(self):
+        for source in ({"hand": DISH}, {"stoves": [{"id": "B1", "state": "ready", "dish": DISH}]}):
+            rows = self.simulate(dict(source, time_left_ticks=1,
+                customers=[dict(CUSTOMER, state="assigned")]), 1)
+            end = snapshots(rows)[-1]
+            self.assertIsNone(end["hand"])
+            self.assertEqual(end["stoves"][0]["state"], "idle")
+            self.assertFalse(end["customers"])
+
     def test_invalid_scenario_returns_two(self):
         for c in (CUSTOMER, dict(CUSTOMER, state="assigned"), dict(CUSTOMER, state="eating")):
             with self.subTest(customer=c):
