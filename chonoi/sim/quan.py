@@ -274,7 +274,7 @@ class QuanSim:
             items = sorted((i for i in self.stock if i["id"] in held),
                            key=lambda i: (i["kind"], id_key(i["id"])))
             self.stock = [i for i in self.stock if i["id"] not in held]
-            # Provisional rule pending PO confirmation: mean freshness as a percentage.
+            # Lock the price at cook start, using the mean over individual ingredients.
             total_fresh = sum(_exact_fresh(i["fresh"]) for i in items)
             price = math.floor(dish["price"] * total_fresh / (100 * len(items)))
             c["reserved"], c["order_status"], c["base_price"] = [], "assigned", price

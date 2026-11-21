@@ -9,7 +9,7 @@ def fish(ident, fresh):
 
 
 def customer(ident, table, **overrides):
-    return dict(id=ident, dish_id="ca_loc_nuong_trui", table_id=table, **overrides)
+    return {"id": ident, "dish_id": "ca_loc_nuong_trui", "table_id": table, **overrides}
 
 
 class Freshness(unittest.TestCase):
@@ -55,3 +55,15 @@ class Freshness(unittest.TestCase):
                 code, _ = run_headless("--mode", "quan", "--seed", "1", "--ticks", "0",
                     "--inventory", write_json(w.path("inv"), {"items": items}), "--out", w.path("o"))
                 self.assertEqual(code, 2)
+
+    def test_price_locks_at_cook_start_and_uses_each_ingredient(self):
+        dish = "goi_bong_sung"
+        stock = [dict(fish("I10", 80 + 1/240), kind="bong_sung"),
+                 dict(fish("I2", 70 + 1/240), kind="bong_sung")]
+        rows = self.simulate("quan", {"stock": stock, "player": {"pos": [2, 8]},
+            "customers": [customer("C1", "T1", dish_id=dish)], "random_customers": False},
+            241, [{"tick": 0, "interact": True}])
+        cooked = events(rows, "cook_started")[0]["data"]
+        self.assertEqual([i["id"] for i in cooked["items"]], ["I2", "I10"])
+        self.assertEqual(cooked["base_price"], 30)
+        self.assertEqual(snapshots(rows)[-1]["stoves"][0]["dish"]["base_price"], 30)

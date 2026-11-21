@@ -2,12 +2,12 @@
 
 Người giữ: Chiến (Integrator). Muốn đổi thì nhắn trong kênh nhóm, rồi ghi lý do ở cuối file này.
 
-## 1. Schema file kho (PRD-0 mục G)
+## 1. Schema file kho (Ticket-03, v1.2)
 
 - Ghi **một lần** khi có `gather_end`. Runner lo việc này qua `--inventory-out`. Hết `--ticks` mà chưa có `gather_end` thì không ghi.
-- Dạng: `{"items": {<nguyên liệu>: <số nguyên > 0>}}`, khóa sắp theo bảng chữ cái, bỏ mục bằng 0.
-- Nguyên liệu Phase 1: `ca_loc`, `ca_linh`, `bong_dien_dien`, `bong_sung`.
-- Ngất (`fainted`) thì kho rỗng: `{"items": {}}`.
+- Kho chứa mảng cá thể với id duy nhất, kind và fresh trong [0,100]. File xuất sắp theo id số. Quán v1.2 từ chối file kho đếm với mã 2.
+- Nguyên liệu gồm `ca_keo`, `keo_neo`, `ca_loc`, `ca_linh`, `bong_dien_dien`, `bong_sung`.
+- Ngất (`fainted`) thì kho rỗng: `{"items": []}`.
 - File mẫu: [`inventory.sample.json`](inventory.sample.json).
 
 `quan` đọc kho qua `--inventory` (hoặc `scenario.quan.stock`, không được dùng cả hai) và đưa vào `snapshot.stock`.
@@ -91,3 +91,5 @@ Payload món trên tay: `{order_id, dish_id, base_price}`, `order_id` bằng id 
 | 2026-11-21 | Chiến | Đổi `data` sự kiện gather, thêm sự kiện quán theo PRD-0 mục E | Có PRD-0 thật; bản đầu tự đặt tên trường |
 | 2026-11-21 | Chiến | Vòng ngày `day`, pause, Shop tối thiểu, input `buy`/`shop_done`/`pause` | Ticket-02 mục 2, 4 |
 | 2026-11-21 | Chiến | Contract v1.1: số chuẩn, 6 nguyên liệu, 6 món, 2 bếp, 4 bàn, cá bơi/sinh, Cá Sấu, `day_plan`, `shop` | Ticket-02 (Phase 2) |
+
+V1.2: `customers[].reserved` chứa id nguyên liệu thô. Khi bắt đầu nấu, `cook_started.data.items` chứa bản ghi nguyên liệu theo kind rồi id. Giá khóa bằng phần nguyên của giá menu nhân độ tươi trung bình chia 100.

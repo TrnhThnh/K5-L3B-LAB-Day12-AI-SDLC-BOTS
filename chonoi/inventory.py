@@ -1,8 +1,4 @@
-"""File kho (Contract G, giữ nguyên ở v1.1): {"items": {id: số nguyên >= 0}}.
-
-Đọc: từ chối sai schema / id lạ / số âm (BadInput -> mã 2).
-Ghi: bỏ mục bằng 0, qua file tạm cùng thư mục rồi thay thế, byte-ổn-định.
-"""
+"""Kho v1.2 lưu từng cá thể. File đích được thay thế nguyên tử khi kết thúc gather."""
 
 import json
 
@@ -60,7 +56,7 @@ def age_items(items, decay_units, threshold, location, events):
             events.append(("spoiled", {"item_id": i["id"], "kind": i["kind"], "location": location}))
 
 
-def read_inventory(path: str, kinds=KINDS, version="1.1"):
+def read_inventory(path: str, kinds=KINDS, version="1.2"):
     try:
         with open(path, encoding="utf-8") as f:
             data = json.load(f)
@@ -81,7 +77,7 @@ def hold_to_items(hold: list) -> dict:
     return {k: counts[k] for k in sorted(counts)}
 
 
-def write_inventory(path: str, items: dict):
+def write_inventory(path: str, items):
     items = sort_by_id(items) if isinstance(items, list) else {k: items[k] for k in sorted(items) if items[k] > 0}
     d = os.path.dirname(os.path.abspath(path))
     fd, tmp = tempfile.mkstemp(prefix=".inv-", suffix=".tmp", dir=d)

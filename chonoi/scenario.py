@@ -9,7 +9,7 @@ import json
 import math
 
 from .errors import BadInput
-from .inventory import KINDS, validate_individuals, validate_items
+from .inventory import validate_individuals
 
 GATHER_KEYS = {"player", "hold", "nodes", "fish", "random_fish", "time_left_ticks", "monsters"}
 GATHER_PLAYER_KEYS = {"pos", "vel", "heading_deg", "hp", "oxygen_ticks", "zero_oxy_ticks",

@@ -22,3 +22,5 @@ Các giả định #2 đến #7 ghi lúc chưa có PRD-0. Khi PRD-0 có trên la
 | 16 | 2026-11-21, Phase 2 | Có chụp snapshot ở tick đổi pha không, khi tick đó không phải bội số của `--snapshot-every`? | Có. Đề ghi "snapshot đổi pha ghi pha mới với phase_tick:0", nên runner luôn chụp ở tick đổi pha (vẫn tối đa một snapshot mỗi tick). | Chiến |
 | 17 | 2026-11-21, Phase 2 | `buy` với lệnh chưa hỗ trợ (ví dụ mở rộng chưa bật) xử lý sao? | Trong Shop phát `buy_failed` với `reason: "unknown"` (đề: "Shop phát buy_failed nếu gặp lệnh không hỗ trợ"). Ngoài Shop thì bỏ qua. | Chiến |
 | 18 | 2026-11-21, Phase 2 | Khối `gather`/`quan` trong scenario `day` áp cho Ngày nào? | Áp cho mọi Ngày (đề: "mẫu khởi tạo mỗi Ngày"), kể cả `gather.hold`. | Chiến |
+
+Phase 3: ticket không nêu công thức giá. Theo quyết định của Thịnh, dùng floor(giá menu × độ tươi trung bình các cá thể / 100) khi bắt đầu nấu, sau hao tươi của tick đó.

@@ -21,3 +21,7 @@
 - Lát 4a: `--mode day` và `--days`, vòng pha gather → quan → shop, bàn giao kho trong bộ nhớ, giữ tiền/uy tín/cấp qua Ngày, nâng cấp áp từ Ngày kế; pause/resumed cho cả ba mode; Shop tối thiểu.
 - Test: `tests/test_day.py` (13 test); test smoke cũ bỏ kiểm `--mode day` bị từ chối (v1.1 đã hỗ trợ).
 - Lát 4b: cửa sổ chơi có `--mode day`, menu chính (Chơi/Thoát), DayIntro tự chuyển sau 4 s, EveningIntro, DayResult, Summary, pause (Tiếp tục/Về menu), Shop (1/2 mua, Enter đóng), HUD sáng/tối theo Ticket-02, chữ không chân ≥ 18 px; 60 FPS ở 1280×720.
+
+## Phase 3 — thay đổi schema kho
+
+V1.2 dùng mảng cá thể trong file kho, gather.hold và quan.stock. Thay mỗi đơn vị trong kho đếm bằng một object có id riêng, kind và fresh; xem docs/contracts/inventory.sample.json. Đổi phần giữ chỗ sang mảng id. Fixture cũ không còn hợp lệ.
