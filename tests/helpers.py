@@ -65,3 +65,10 @@ class Workdir:
 
     def path(self, name):
         return os.path.join(self._d.name, name)
+
+
+def individuals(kinds, fresh=100):
+    """Ordered v1.2 fixture with stable IDs. Counts are shorthand in test code only."""
+    if isinstance(kinds, dict):
+        kinds = [kind for kind, n in kinds.items() for _ in range(n)]
+    return [{"id": f"I{n}", "kind": kind, "fresh": fresh} for n, kind in enumerate(kinds, 1)]

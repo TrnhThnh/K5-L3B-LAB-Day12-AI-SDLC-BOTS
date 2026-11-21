@@ -3,6 +3,8 @@
 
 import unittest
 
+from helpers import individuals
+
 from chonoi.errors import BadInput
 from chonoi.ids import IdAllocator, id_key, sort_by_id
 from chonoi.contract import load_contract
@@ -62,7 +64,7 @@ class Units(unittest.TestCase):
 
     def test_session_steps_gather_and_dock(self):
         tuning = load_contract()["tuning"]
-        s = Session("gather", tuning, {"hold": ["ca_loc"]}, 1)
+        s = Session("gather", tuning, {"hold": individuals(["ca_loc"])}, 1)
         self.assertEqual(s.snapshot()["tick"], 0)
         li = LiveInputs()
         self.assertEqual(s.step(li.advance()), [])

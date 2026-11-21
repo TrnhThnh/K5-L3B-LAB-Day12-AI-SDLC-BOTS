@@ -37,7 +37,7 @@ class ShopPhase:
 
     def __init__(self, shop_cfg, stock):
         self.cfg = shop_cfg
-        self.stock = {k: stock[k] for k in sorted(stock) if stock[k] > 0}  # kho dư từ ca, bỏ sau Shop
+        self.stock = list(stock)  # kho dư từ ca, bỏ sau Shop
         self.time_left_ticks = int(shop_cfg["max_ticks"])
         self.phase_tick = 0
         self.done = False

@@ -6,6 +6,8 @@ import json
 import math
 import unittest
 
+from helpers import individuals
+
 from helpers import Workdir, close, events, frames, read_jsonl, run_headless, snapshots, write_json
 
 
@@ -152,15 +154,15 @@ class Crocodile(unittest.TestCase):
         mo = G()["monsters"]
         hold = ["ca_loc", "bong_sung", "ca_linh", "ca_linh", "keo_neo"]
         with Workdir() as w:
-            rows, s = run(w, {"random_fish": False, "player": {"pos": [50, 15]}, "hold": hold,
+            rows, s = run(w, {"random_fish": False, "player": {"pos": [50, 15]}, "hold": individuals(hold),
                               "monsters": [croc()]}, 1)
             hit = events(rows, "monster_hit")[0]
             n = math.floor(len(hold) * mo["loss_ratio"])
             self.assertEqual(hit["data"], {"monster_id": "M1", "hp": G()["hp_max"] - 1,
-                                           "lost": list(reversed(hold))[:n], "pos": [50, 15]})
+                                           "lost": list(reversed(individuals(hold, 100 - 1 / 120)))[:n], "pos": [50, 15]})
             p = s[1]["player"]
             self.assertEqual((p["hp"], p["invuln_ticks"]), (G()["hp_max"] - 1, mo["invuln_ticks"]))
-            self.assertEqual(s[1]["hold"], hold[:len(hold) - n])
+            self.assertEqual(s[1]["hold"], individuals(hold, 100 - 1 / 120)[:len(hold) - n])
             m = s[1]["monsters"][0]
             self.assertEqual((m["state"], m["state_ticks_left"], m["recoil_dir"]),
                              ("recoil", self.sp()["recoil_ticks"], [1, 0]), "trùng tâm dùng +x")
@@ -188,16 +190,16 @@ class Crocodile(unittest.TestCase):
             inv = w.path("inv.json")
             args = ["--mode", "gather", "--seed", "1", "--ticks", "5", "--out", w.path("o.jsonl"),
                     "--inventory-out", inv, "--scenario",
-                    write_json(w.path("sc.json"), {"gather": {"random_fish": False, "hold": hold,
+                    write_json(w.path("sc.json"), {"gather": {"random_fish": False, "hold": individuals(hold),
                                                               "player": {"pos": [50, 15], "hp": 1},
                                                               "monsters": [croc()]}})]
             self.assertEqual(run_headless(*args)[0], 0)
             rows = read_jsonl(w.path("o.jsonl"))
             self.assertEqual([e["name"] for e in events(rows)], ["monster_hit", "faint", "gather_end"])
-            self.assertEqual(events(rows, "monster_hit")[0]["data"]["lost"], ["ca_linh"])
-            self.assertEqual(events(rows, "faint")[0]["data"], {"cause": "monster", "lost": ["bong_sung", "ca_loc"], "hp": 0})
+            self.assertEqual(events(rows, "monster_hit")[0]["data"]["lost"], individuals(hold, 100 - 1 / 120)[-1:])
+            self.assertEqual(events(rows, "faint")[0]["data"], {"cause": "monster", "lost": individuals(["ca_loc", "bong_sung"], 100 - 1 / 120)[::-1], "hp": 0})
             with open(inv, encoding="utf-8") as f:
-                self.assertEqual(json.load(f), {"items": {}})
+                self.assertEqual(json.load(f), {"items": []})
 
     def test_bad_monster_fixture_exit_2(self):
         for m in (croc(kind="ran"), croc(pos=[50, 5]), croc(waypoints=[[50, 15]]), croc(state="recoil"),

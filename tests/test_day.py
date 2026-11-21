@@ -5,6 +5,8 @@ Chạy: PYTHONPATH=tests:. python3 -m unittest tests.test_day -v
 import json
 import unittest
 
+from helpers import individuals
+
 from helpers import Workdir, events, frames, read_jsonl, run_headless, snapshots, write_json
 
 
@@ -33,7 +35,7 @@ def run_day(w, scenario=None, inputs=None, days=None, n=60000, every=600, seed=4
 
 # Ví dụ Ticket-02 mục 4.3: có tiền và kho mang về, tương tác ở bến đóng ca sáng ngay.
 DOCK = {"day": {"money": 200, "earned": 200},
-        "gather": {"hold": ["ca_loc", "bong_sung", "bong_sung"], "random_fish": False}}
+        "gather": {"hold": individuals(["ca_loc", "bong_sung", "bong_sung"]), "random_fish": False}}
 DOCK_IN = [{"tick": 0, "interact": True}, {"tick": 1, "interact": False}]
 SHOP_AT = 1 + ticks(T()["quan"]["duration_s"])  # tick mở Shop khi cập bến ở tick 1
 
@@ -67,7 +69,7 @@ class DayLoop(unittest.TestCase):
             self.assertEqual((ge["tick"], ge["phase"], ps[0]["phase"]), (1, "gather", "quan"))
             snap = {s["tick"]: s for s in snapshots(rows)}[1]
             self.assertEqual((snap["phase"], snap["phase_tick"]), ("quan", 0), "snapshot đổi pha ghi pha mới")
-            self.assertEqual(snap["stock"], {"bong_sung": 2, "ca_loc": 1}, "kho bàn giao trong bộ nhớ")
+            self.assertEqual(snap["stock"], individuals(["ca_loc", "bong_sung", "bong_sung"], 100 - 1 / 120), "kho bàn giao trong bộ nhớ")
             qe = events(rows, "quan_end")[0]
             self.assertEqual((qe["tick"], qe["phase"]), (SHOP_AT, "quan"))
             shop_snap = {s["tick"]: s for s in snapshots(rows)}[SHOP_AT]
@@ -77,19 +79,19 @@ class DayLoop(unittest.TestCase):
 
     def test_plan_filters_menu(self):
         """D1 chỉ có cá lóc nướng trui và gỏi bông súng: kho lẩu cá linh không đủ cho món nào trong kế hoạch."""
-        sc = {"gather": {"hold": ["ca_linh", "ca_linh", "ca_linh", "bong_dien_dien"], "random_fish": False}}
+        sc = {"gather": {"hold": individuals(["ca_linh", "ca_linh", "ca_linh", "bong_dien_dien"]), "random_fish": False}}
         first = T()["quan"]["first_customer_tick"]
         with Workdir() as w:
             rows = run_day(w, sc, DOCK_IN, n=1 + first, every=10000)
             self.assertEqual(names(rows, 1 + first), ["no_dish"])
 
     def test_faint_still_opens_quan_with_empty_stock(self):
-        sc = {"gather": {"random_fish": False, "monsters": [], "hold": ["ca_loc"],
+        sc = {"gather": {"random_fish": False, "monsters": [], "hold": individuals(["ca_loc"]),
                          "player": {"pos": [50, 15], "hp": 1, "oxygen_ticks": 0, "zero_oxy_ticks": 59}}}
         with Workdir() as w:
             rows = run_day(w, sc, n=1, every=1)
             self.assertEqual(names(rows, 1), ["choke", "faint", "gather_end", "phase_start"])
-            self.assertEqual(snapshots(rows)[-1]["stock"], {})
+            self.assertEqual(snapshots(rows)[-1]["stock"], [])
 
 
 class Shop(unittest.TestCase):
@@ -166,7 +168,7 @@ class Pause(unittest.TestCase):
         inputs = [{"tick": 0, "pause": True}, {"tick": 1, "pause": False, "interact": True}]
         with Workdir() as w:
             out = w.path("o.jsonl")
-            sc = write_json(w.path("sc.json"), {"gather": {"hold": ["ca_loc"]}})
+            sc = write_json(w.path("sc.json"), {"gather": {"hold": individuals(["ca_loc"])}})
             run_headless("--mode", "gather", "--seed", "1", "--ticks", "5", "--scenario", sc,
                          "--inputs", write_json(w.path("in.json"), frames(*inputs)), "--out", out)
             self.assertEqual([e["name"] for e in events(read_jsonl(out))], ["paused"], "cạnh interact khi pause bị bỏ")
@@ -180,7 +182,7 @@ class Validation(unittest.TestCase):
             self.assertEqual(run_headless("--mode", "gather", "--days", "2", *base)[0], 2)
             for d in ("0", "6"):
                 self.assertEqual(run_headless("--mode", "day", "--days", d, *base)[0], 2, d)
-            for sc in ({"quan": {"stock": {"ca_loc": 1}}}, {"quan": {"reputation": 4}},
+            for sc in ({"quan": {"stock": individuals({"ca_loc": 1})}}, {"quan": {"reputation": 4}},
                        {"day": {"money": 300, "earned": 200}}, {"day": {"money": 100}},
                        {"day": {"upgrades": {"oxygen": 9}}},
                        {"day": {"day_plan": [{"day": 1, "dishes": {"pho": 1}}]}}):

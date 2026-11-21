@@ -7,6 +7,8 @@ Chạy: PYTHONPATH=tests:. python3 -m unittest tests.test_gather_rules -v
 import json
 import unittest
 
+from helpers import individuals
+
 from helpers import Workdir, events, frames, read_jsonl, run_headless, snapshots, write_json
 
 
@@ -91,17 +93,17 @@ class Oxygen(unittest.TestCase):
         with Workdir() as w:
             inv = w.path("inv.json")
             rows, _ = run(w, {"player": {"pos": [20, 5], "oxygen_ticks": 0, "zero_oxy_ticks": interval - 1, "hp": 1},
-                              "hold": ["ca_loc", "bong_sung"], "random_fish": False}, 50, inv_out=inv)
+                              "hold": individuals(["ca_loc", "bong_sung"]), "random_fish": False}, 50, inv_out=inv)
             self.assertEqual(names(rows), ["choke", "faint", "gather_end"])
             self.assertEqual(events(rows, "faint")[0]["data"],
-                             {"cause": "choke", "lost": ["bong_sung", "ca_loc"], "hp": 0}, "lost theo LIFO")
+                             {"cause": "choke", "lost": individuals(["ca_loc", "bong_sung"], 100 - 1 / 120)[::-1], "hp": 0}, "lost theo LIFO")
             end = events(rows, "gather_end")[0]
             self.assertEqual(end["tick"], 1)
-            self.assertEqual(end["data"], {"reason": "fainted", "inventory": {"items": {}}})
+            self.assertEqual(end["data"], {"reason": "fainted", "inventory": {"items": []}})
             self.assertEqual(rows[-1]["reason"], "fainted")
             self.assertEqual(snapshots(rows)[-1]["hold"], [])
             with open(inv, encoding="utf-8") as f:
-                self.assertEqual(json.load(f), {"items": {}})
+                self.assertEqual(json.load(f), {"items": []})
 
 
 class Zones(unittest.TestCase):
@@ -132,7 +134,7 @@ class Harvest(unittest.TestCase):
             g = events(rows, "gather")
             self.assertEqual(len(g), 1, "nút đang mọc lại không hái được lần hai")
             self.assertEqual(g[0]["data"], {"node_id": "N1", "kind": "bong_dien_dien", "amount": G()["node_yield"]})
-            self.assertEqual(s[1]["hold"], ["bong_dien_dien"] * G()["node_yield"])
+            self.assertEqual(s[1]["hold"], individuals(["bong_dien_dien"] * G()["node_yield"]))
             self.assertFalse(s[1]["nodes"][0]["ready"])
             self.assertEqual(s[1]["nodes"][0]["regrow_ticks"], regrow)
             rg = events(rows, "node_regrown")
@@ -151,7 +153,7 @@ class Harvest(unittest.TestCase):
     def test_hold_full_blocks_harvest(self):
         cap = G()["hold_capacity"]
         with Workdir() as w:
-            rows, s = run(w, self.node_scn(hold=["ca_loc"] * cap), 1, inputs=[{"tick": 0, "interact": True}])
+            rows, s = run(w, self.node_scn(hold=individuals(["ca_loc"] * cap)), 1, inputs=[{"tick": 0, "interact": True}])
             self.assertEqual(names(rows), ["hold_full"])
             self.assertEqual(events(rows, "hold_full")[0]["data"],
                              {"action": "gather", "node_id": "N1", "required": G()["node_yield"], "free": 0})
@@ -185,9 +187,9 @@ class Catch(unittest.TestCase):
         y = G()["fish_yield"]["ca_linh"]
         cd = int(round(G()["catch_cooldown_s"] * 60))
         with Workdir() as w:
-            rows, s = run(w, self.fish_scn(hold=["bong_sung"]), 1, inputs=[{"tick": 0, "catch": True}])
+            rows, s = run(w, self.fish_scn(hold=individuals(["bong_sung"])), 1, inputs=[{"tick": 0, "catch": True}])
             self.assertEqual(events(rows, "fish_caught")[0]["data"], {"fish_id": "F1", "kind": "ca_linh", "yield": y})
-            self.assertEqual(s[1]["hold"], ["bong_sung"] + ["ca_linh"] * y, "giỏ giữ thứ tự nhặt, mới nhất ở cuối")
+            self.assertEqual([i["kind"] for i in s[1]["hold"]], ["bong_sung"] + ["ca_linh"] * y, "giỏ giữ thứ tự nhặt, mới nhất ở cuối")
             self.assertEqual(s[1]["fish"], [])
             self.assertEqual(s[1]["player"]["catch_cd_ticks"], cd)
 
@@ -214,7 +216,7 @@ class Catch(unittest.TestCase):
         y = G()["fish_yield"]["ca_linh"]
         fish = [{"id": "F1", "kind": "ca_linh", "pos": [15, 5]}, {"id": "F2", "kind": "ca_loc", "pos": [16, 5]}]
         with Workdir() as w:
-            rows, s = run(w, self.fish_scn(hold=["ca_loc"] * (cap - y + 1), fish=fish), 1,
+            rows, s = run(w, self.fish_scn(hold=individuals(["ca_loc"] * (cap - y + 1)), fish=fish), 1,
                           inputs=[{"tick": 0, "catch": True}])
             self.assertEqual(names(rows), ["hold_full"])
             self.assertEqual(events(rows, "hold_full")[0]["data"],
@@ -233,7 +235,7 @@ class Catch(unittest.TestCase):
     def test_full_hold_keeps_fish(self):
         cap = G()["hold_capacity"]
         with Workdir() as w:
-            rows, s = run(w, self.fish_scn(hold=["ca_loc"] * cap), 1, inputs=[{"tick": 0, "catch": True}])
+            rows, s = run(w, self.fish_scn(hold=individuals(["ca_loc"] * cap)), 1, inputs=[{"tick": 0, "catch": True}])
             self.assertEqual(names(rows), ["hold_full"])
             self.assertEqual(len(s[1]["fish"]), 1)
 

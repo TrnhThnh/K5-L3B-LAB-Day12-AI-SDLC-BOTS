@@ -28,7 +28,7 @@ Phase 2 (Ticket-02, Test Contract v1.1), thứ tự bước theo mục 4.5:
 import math
 
 from ..ids import sort_by_id
-from ..inventory import hold_to_items
+from ..inventory import age_items, validate_individuals
 from .ramp import ramp_velocity
 
 TICK = 60.0
@@ -59,7 +59,14 @@ class GatherSim:
         self.zero_oxy_ticks = p.get("zero_oxy_ticks", 0)
         self.invuln_ticks = p.get("invuln_ticks", 0)
         self.catch_cd_ticks = p.get("catch_cd_ticks", 0)
-        self.hold = list(scenario.get("hold", []))  # thứ tự nhặt, cuối mảng là mới nhất
+        self.freshness = tuning["freshness"]
+        self.decay_units = self.freshness["gather_decay_per_s"] * 240 / TICK
+        self.hold = validate_individuals(scenario.get("hold", []))
+        for item in self.hold:
+            if day > 1:
+                item["id"] = ids.new("I")
+            else:
+                ids.reserve(item["id"])  # thứ tự nhặt, cuối mảng là mới nhất
         self.time_left_ticks = scenario.get("time_left_ticks", int(round(t["duration_s"] * TICK)))
         self.phase_tick = 0
         # nút và đàn cá: scenario THAY THẾ danh sách mặc định; random_fish=false tắt cá mặc định
@@ -89,8 +96,8 @@ class GatherSim:
         self.reason = None
 
     # --- giao diện cho runner -------------------------------------------------
-    def inventory_items(self) -> dict:
-        return hold_to_items(self.hold)
+    def inventory_items(self) -> list:
+        return sort_by_id(self.hold)
 
     def snapshot(self) -> dict:
         return {
@@ -123,6 +130,7 @@ class GatherSim:
                 n["regrow_ticks"] -= 1
                 if n["regrow_ticks"] == 0:
                     events.append(("node_regrown", {"node_id": n["id"]}))
+        age_items(self.hold, self.decay_units, self.freshness["spoiled_below"], "hold", events)
         # 2. bơi + chặn mép; so phân vùng đầu/cuối bước -> dive / surface
         was_surface = self._at_surface()
         self._move(inp)
@@ -346,7 +354,8 @@ class GatherSim:
             events.append(("hold_full", {"action": "gather", "node_id": node["id"],
                                          "required": need, "free": self._free()}))
             return
-        self.hold.extend([node["kind"]] * need)  # cuối mảng là mới nhất (LIFO)
+        self.hold.extend({"id": self.ids.new("I"), "kind": node["kind"], "fresh": self.freshness["initial"]}
+                         for _ in range(need))  # cuối mảng là mới nhất (LIFO)
         node["regrow_ticks"] = int(round(self.t["regrow_s"] * TICK))
         events.append(("gather", {"node_id": node["id"], "kind": node["kind"], "amount": need}))
 
@@ -361,7 +370,8 @@ class GatherSim:
             events.append(("hold_full", {"action": "catch", "fish_id": fish["id"],
                                          "required": need, "free": self._free()}))
             return
-        self.hold.extend([fish["kind"]] * need)
+        self.hold.extend({"id": self.ids.new("I"), "kind": fish["kind"], "fresh": self.freshness["initial"]}
+                         for _ in range(need))
         self.fish = [f for f in self.fish if f["id"] != fish["id"]]
         self.catch_cd_ticks = int(round(self.t["catch_cooldown_s"] * TICK))
         events.append(("fish_caught", {"fish_id": fish["id"], "kind": fish["kind"], "yield": need}))

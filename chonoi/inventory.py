@@ -5,6 +5,8 @@ Ghi: bỏ mục bằng 0, qua file tạm cùng thư mục rồi thay thế, byte
 """
 
 import json
+
+from .ids import sort_by_id
 import os
 import tempfile
 
@@ -29,7 +31,36 @@ def validate_items(items, kinds=KINDS):
     return out
 
 
-def read_inventory(path: str, kinds=KINDS) -> dict:
+def validate_individuals(items):
+    if not isinstance(items, list):
+        raise BadInput("items phải là mảng cá thể")
+    seen = set()
+    for item in items:
+        if not isinstance(item, dict) or set(item) != {"id", "kind", "fresh"}:
+            raise BadInput("cá thể cần đúng id, kind, fresh")
+        ident, fresh = item["id"], item["fresh"]
+        if not isinstance(ident, str) or not ident or ident in seen or item["kind"] not in KINDS:
+            raise BadInput("id hoặc kind không hợp lệ")
+        if type(fresh) not in (int, float) or not 0 <= fresh <= 100:
+            raise BadInput("fresh ngoài miền")
+        seen.add(ident)
+    return [dict(i) for i in items]
+
+
+def age_items(items, decay_units, threshold, location, events):
+    # 240 units per point makes both standard tick decrements integral.
+    for i in sort_by_id(items):
+        before = i["fresh"]
+        units = before * 240
+        nearest = round(units)
+        if before == nearest / 240:
+            units = nearest
+        i["fresh"] = max(0, units - decay_units) / 240
+        if i["fresh"] < threshold <= before:
+            events.append(("spoiled", {"item_id": i["id"], "kind": i["kind"], "location": location}))
+
+
+def read_inventory(path: str, kinds=KINDS, version="1.1"):
     try:
         with open(path, encoding="utf-8") as f:
             data = json.load(f)
@@ -37,6 +68,8 @@ def read_inventory(path: str, kinds=KINDS) -> dict:
         raise BadInput(f"không đọc được file kho {path}: {e}")
     if not isinstance(data, dict) or set(data.keys()) != {"items"}:
         raise BadInput("file kho chỉ được có khóa gốc 'items'")
+    if version == "1.2":
+        return validate_individuals(data["items"])
     return validate_items(data["items"], kinds)
 
 
@@ -49,7 +82,7 @@ def hold_to_items(hold: list) -> dict:
 
 
 def write_inventory(path: str, items: dict):
-    items = {k: items[k] for k in sorted(items) if items[k] > 0}
+    items = sort_by_id(items) if isinstance(items, list) else {k: items[k] for k in sorted(items) if items[k] > 0}
     d = os.path.dirname(os.path.abspath(path))
     fd, tmp = tempfile.mkstemp(prefix=".inv-", suffix=".tmp", dir=d)
     try:
