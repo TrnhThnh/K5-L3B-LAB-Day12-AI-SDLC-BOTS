@@ -36,4 +36,4 @@
 
 ## Skills / hooks của nhóm
 - `.agents/skills/check-contract/` (Chiến): kiểm không hard-code số, không random/đồng hồ hệ thống, sắp bằng `sort_by_id`, tất định từng byte, rồi chạy toàn bộ test. Dùng trước khi push hoặc gắn tag, và sau mỗi lần agent sửa `chonoi/sim/`.
-- (Thịnh viết skill thứ hai, ví dụ `run-proof`: chạy test và headless rồi lưu kết quả vào `docs/proof/phase-n/`.)
+- `.agents/skills/run-proof/` (Thịnh): chạy toàn bộ test và lượt headless theo AC, lưu log vào `docs/proof/phase-N/`, rồi ghi seed, tick và đường dẫn vào `docs/verification/phase-N.md`. Dùng khi chốt bằng chứng trước khi gắn tag.

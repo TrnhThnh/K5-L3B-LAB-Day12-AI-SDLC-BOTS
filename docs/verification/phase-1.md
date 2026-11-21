@@ -33,3 +33,9 @@ Lượt demo quán nối tiếp ([inputs](../proof/phase-1/quan-demo.inputs.json
 ## Đánh giá ngắn
 - Yêu cầu nào đạt / chưa đạt: lát 1 và lát 2 của gather đạt và đã khớp PRD-0. Smoke hai tiến trình đạt. Lát 3–4 của quán đạt theo test của nhóm, nhưng xong muộn, sau hạn 1:00. Kiểm mâu thuẫn fixture quán mới phủ một phần mục D. HUD mới có cửa sổ thử của khung, chưa đủ HUD tối thiểu ở PRD-0 mục 2. README chưa có mục cách chạy theo DoD.
 - Điều cần chỉnh cho phase sau: đọc kỹ đề trước khi tự đặt giả định (3 trong 6 giả định lúc đầu sai). Hoàn thiện HUD và README cách chạy theo DoD. Hỏi giảng viên chuyện nhóm 2 người.
+
+## Kiểm chứng song song của Thịnh (nhánh `thinh/phase-2-quan-qa`)
+
+Thịnh viết một bản luật quán riêng trên nhánh tách từ `bce8606` và tự kiểm bằng test CLI. Kết quả ghi trong [quan-unittest.txt](../proof/phase-1/quan-unittest.txt): lịch khách và `no_dish`, hết kiên nhẫn trả giữ chỗ, nấu/bưng/phục vụ/thanh toán/hết ca, ngưỡng boa, ưu tiên bếp và bán kính tương tác, scenario mâu thuẫn trả mã 2, đều đạt trên nhánh đó. Hai lượt cùng seed trùng từng byte ([SHA-256](../proof/phase-1/quan-contract.txt)).
+
+Khi gộp vào `main`, nhóm giữ bản quán đã tích hợp với vòng ngày (sau đó Thịnh chuyển sang v1.2). Bảng tên trường sự kiện trên nhánh của Thịnh được thay bằng tên trường theo PRD-0 mục E trong `docs/contracts/README.md`.

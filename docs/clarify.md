@@ -22,5 +22,8 @@ Các giả định #2 đến #7 ghi lúc chưa có PRD-0. Khi PRD-0 có trên la
 | 16 | 2026-11-21, Phase 2 | Có chụp snapshot ở tick đổi pha không, khi tick đó không phải bội số của `--snapshot-every`? | Có. Đề ghi "snapshot đổi pha ghi pha mới với phase_tick:0", nên runner luôn chụp ở tick đổi pha (vẫn tối đa một snapshot mỗi tick). | Chiến |
 | 17 | 2026-11-21, Phase 2 | `buy` với lệnh chưa hỗ trợ (ví dụ mở rộng chưa bật) xử lý sao? | Trong Shop phát `buy_failed` với `reason: "unknown"` (đề: "Shop phát buy_failed nếu gặp lệnh không hỗ trợ"). Ngoài Shop thì bỏ qua. | Chiến |
 | 18 | 2026-11-21, Phase 2 | Khối `gather`/`quan` trong scenario `day` áp cho Ngày nào? | Áp cho mọi Ngày (đề: "mẫu khởi tạo mỗi Ngày"), kể cả `gather.hold`. | Chiến |
+| 19 | 2026-11-21, Phase 1 | Kho giữ chỗ và món của khách bỏ đi xử lý thế nào? | Giả định giữ chỗ trong kho tới khi bắt đầu nấu. Khách bỏ đi trước khi nấu thì giải phóng phần giữ chỗ. Sau khi nấu thì bỏ món của khách, không hoàn nguyên liệu. | Thịnh |
+| 20 | 2026-11-21, Phase 1 | Thứ tự trong tick và thanh toán? | Bếp và khách đếm ngược trước tương tác, khách mới đến sau tương tác. Hết bàn thì bỏ lượt. Chốt boa lúc phục vụ, cộng tiền và uy tín khi ăn xong. | Thịnh |
+| 21 | Phase 2 | Chọn đơn nào cho bếp và xử lý khách cuối ca? | TICKET-02 §1.3 chốt ưu tiên order_tick rồi id bàn. Khách còn ăn trả ngay; khách còn chờ rời không mất uy tín. | TICKET-02 |
 
 Phase 3: ticket không nêu công thức giá. Theo quyết định của Thịnh, dùng floor(giá menu × độ tươi trung bình các cá thể / 100) khi bắt đầu nấu, sau hao tươi của tick đó.

@@ -1,0 +1,29 @@
+{
+  "seed": 7,
+  "gather_end": {
+    "type": "event",
+    "tick": 1,
+    "phase": "gather",
+    "name": "gather_end",
+    "data": {
+      "reason": "docked",
+      "inventory": {
+        "items": {
+          "ca_keo": 2,
+          "keo_neo": 1
+        }
+      }
+    }
+  },
+  "inventory_file": {
+    "items": {
+      "ca_keo": 2,
+      "keo_neo": 1
+    }
+  },
+  "quan_tick": 0,
+  "quan_stock": {
+    "ca_keo": 2,
+    "keo_neo": 1
+  }
+}
