@@ -25,7 +25,7 @@ Các giả định #2 đến #7 ghi lúc chưa có PRD-0. Khi PRD-0 có trên la
 | 19 | 2026-11-21, Phase 1 | Kho giữ chỗ và món của khách bỏ đi xử lý thế nào? | Giả định giữ chỗ trong kho tới khi bắt đầu nấu. Khách bỏ đi trước khi nấu thì giải phóng phần giữ chỗ. Sau khi nấu thì bỏ món của khách, không hoàn nguyên liệu. | Thịnh |
 | 20 | 2026-11-21, Phase 1 | Thứ tự trong tick và thanh toán? | Bếp và khách đếm ngược trước tương tác, khách mới đến sau tương tác. Hết bàn thì bỏ lượt. Chốt boa lúc phục vụ, cộng tiền và uy tín khi ăn xong. | Thịnh |
 | 21 | Phase 2 | Chọn đơn nào cho bếp và xử lý khách cuối ca? | TICKET-02 §1.3 chốt ưu tiên order_tick rồi id bàn. Khách còn ăn trả ngay; khách còn chờ rời không mất uy tín. | TICKET-02 |
-
 Phase 3: ticket không nêu công thức giá. Theo quyết định của Thịnh, dùng floor(giá menu × độ tươi trung bình các cá thể / 100) khi bắt đầu nấu, sau hao tươi của tick đó.
 | 22 | 2026-11-21, Phase 4 | "Benchmark có render" chạy thế nào trên máy chấm không có màn hình? | `bench_cmd` render toàn cảnh buổi sáng vào framebuffer RGB 1280×720 bằng phần mềm (thư viện chuẩn), mô phỏng 60 tick/s theo đồng hồ thật. Cửa sổ chơi trên trình duyệt đo FPS riêng (60 FPS). | Chiến |
 | 23 | 2026-11-21, Phase 4 | `load_ms` tính từ lúc nào? | Từ lúc nạp module `chonoi.bench` tới khi khung đầu tiên render xong; chưa gồm thời gian khởi động trình thông dịch (ghi ở README, mục Giới hạn). | Chiến |
+| 24 | 2026-11-21, Phase 4 | Soak dùng chiến lược input nào khi đề không chỉ định? | Dùng input rỗng tất định; các pha chạy đến timeout để kiểm đủ vòng gather → quan → shop và nhiều Ngày. Kết quả không đánh giá chất lượng chiến lược chơi. | Thịnh |

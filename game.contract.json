@@ -4,9 +4,9 @@
   "team_size": 2,
   "build_cmd": "true",
   "run_cmd": "python3 -m chonoi.live --mode day --days 5",
+  "soak_cmd": "python3 -m chonoi.soak",
   "headless_cmd": "python3 -m chonoi.headless",
   "bench_cmd": "python3 -m chonoi.bench",
-  "soak_cmd": "python3 -m chonoi.soak",
   "tuning": {
     "freshness": {
       "initial": 100,

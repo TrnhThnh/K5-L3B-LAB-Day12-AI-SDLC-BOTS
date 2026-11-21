@@ -33,4 +33,5 @@ V1.2 dùng mảng cá thể trong file kho, gather.hold và quan.stock. Thay m�
 - `chonoi/bench.py`: benchmark có render phần mềm 1280×720, làm nóng 3 s, ghi `bench.json` 5 trường; `tests/test_bench.py`.
 - Cửa sổ chơi: ba cảnh báo có chữ và biểu tượng (thủy quái gần, oxy sắp hết/hết, khách sắp giận), chế độ tương phản cao (phím H, nhớ giữa các lần mở).
 - README của nhóm: chạy từ clone sạch 3 lệnh, điều khiển, cách tính điểm, lệnh test/headless/bench/soak, giới hạn đã biết. Đề lab gốc chuyển sang `docs/LAB.md`.
-
+- `chonoi/soak.py`: chạy N Ngày bằng một session headless, xác minh kế hoạch lặp D1–D5 và kết quả từng Ngày; replay cùng seed để kiểm định tính lặp.
+- Bằng chứng soak 10 Ngày seed 7 và regression Phase 4: `docs/proof/phase-4/soak.json`, `docs/proof/phase-4/unittest.txt`.
