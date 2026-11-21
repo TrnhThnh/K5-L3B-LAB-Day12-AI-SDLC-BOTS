@@ -17,3 +17,19 @@ Regression P1–P2 giữ các ca chuyển pha, pause, thời gian, thanh toán, 
 Chạy lại bằng `PYTHONPATH=tests:. python3 -m unittest discover -s tests -v`. Các mở rộng đặt bàn và dòng lũ nằm ngoài phạm vi lõi của nhóm hai người.
 
 Bảng tác động, quyết định đổi schema và thứ tự tích hợp: [ADR-0001](../adr/0001-kho-ca-the-v1.2.md).
+
+## Kiểm lại cả ba tag và main
+
+Ngày 21/11/2026, QA xuất từng tag vào thư mục riêng bằng git archive rồi chạy unittest discover với đúng code và fixture của tag.
+
+| Tag | Commit | Contract | Test đạt |
+|---|---|---|---:|
+| phase-1 | e778858 | 1.0 | 65/65 |
+| phase-2 | b1b4c9c | 1.1 | 100/100 |
+| phase-3 | 64233ea | 1.2 | 107/107 |
+
+Trên main sau tag Phase 3, lệnh chơi ở manifest mở vòng 5 Ngày. README có lệnh chạy bản chơi, headless và smoke kho. Đã chạy lại smoke qua hai tiến trình theo README và so toàn bộ mảng cá thể giữa gather_end, file kho và snapshot quán tick 0.
+
+Với seed 7, không input, snapshot mỗi 1.000 tick, một Ngày hoàn tất ở tick 22.200 trong 0,41 giây trên máy kiểm. Năm Ngày hoàn tất ở tick 111.000 trong 1,71 giây, đủ năm sự kiện day_plan và kết thúc với days_completed=5. Sau khi bổ sung kiểm fixture quán và day, [107 test trên main đều đạt](../proof/phase-3/main-regression.txt).
+
+Kiểm hành chính bằng tools/check_team.py vẫn báo nhóm có hai người, dưới mức 4–6. Việc chấp nhận ngoại lệ đang chờ giảng viên theo clarify #1. Kết quả trên không xác nhận thời điểm GitHub nhận từng tag.

@@ -101,14 +101,18 @@ def _validate_day(d, tuning):
     if "reputation" in d and not (_num(d["reputation"]) and q["reputation_min"] <= d["reputation"] <= q["reputation_max"]):
         raise BadInput("day.reputation ngoài khoảng uy tín")
     ups = tuning["shop"]["upgrades"]
+    if not isinstance(d.get("upgrades", {}), dict):
+        raise BadInput("day.upgrades phải là object")
     for kind, lv in d.get("upgrades", {}).items():
         if kind not in ups:
             raise BadInput(f"day.upgrades: nâng cấp lạ {kind}")
         if isinstance(lv, bool) or not isinstance(lv, int) or not (0 <= lv <= len(ups[kind])):
             raise BadInput(f"day.upgrades.{kind}: cấp phải trong [0, {len(ups[kind])}]")
     menu = tuning["menu"]
+    if not isinstance(d.get("day_plan", []), list):
+        raise BadInput("day.day_plan phải là mảng")
     for p in d.get("day_plan", []):
-        if not isinstance(p, dict) or not isinstance(p.get("day"), int) or not (1 <= p["day"] <= 5):
+        if not isinstance(p, dict) or type(p.get("day")) is not int or not (1 <= p["day"] <= 5):
             raise BadInput("day.day_plan: mỗi mục cần day trong [1, 5]")
         dishes = p.get("dishes")
         if not isinstance(dishes, dict) or not dishes:
@@ -258,6 +262,22 @@ def _validate_quan(b, tuning):
         _pos("player.pos", p["pos"], qb, axes=("x", "z"))
     if "vel" in p and not (isinstance(p["vel"], list) and len(p["vel"]) == 2 and all(_num(c) for c in p["vel"])):
         raise BadInput("player.vel phải là [x, z]")
+    q = tuning["quan"]
+    if "random_customers" in b and type(b["random_customers"]) is not bool:
+        raise BadInput("random_customers phải là boolean")
+    if "reputation" in b and not (_num(b["reputation"]) and q["reputation_min"] <= b["reputation"] <= q["reputation_max"]):
+        raise BadInput("quan.reputation ngoài khoảng")
+    for group in ("tables", "stoves"):
+        for obj in b.get(group, []):
+            if "pos" in obj:
+                _pos(group, obj["pos"], qb, axes=("x", "z"))
+    for stove in b.get("stoves", []):
+        for key in ("cook_ticks_left", "ready_ticks"):
+            _nonneg_int(key, stove.get(key, 0))
+        if stove.get("state", "idle") != "cooking" and stove.get("cook_ticks_left", 0):
+            raise BadInput("chỉ bếp đang nấu mới có thời gian nấu còn lại")
+        if stove.get("state", "idle") != "ready" and stove.get("ready_ticks", 0):
+            raise BadInput("chỉ món chín mới có ready_ticks")
     table_ids = [c.get("table_id") for c in b.get("customers", [])]
     known = {t["id"] for t in tuning["quan"]["tables"]} | {t.get("id") for t in b.get("tables", [])}
     for c in b.get("customers", []):

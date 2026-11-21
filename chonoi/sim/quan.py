@@ -99,7 +99,7 @@ class QuanSim:
         extra = set(c) - CUST_KEYS
         if extra:
             raise BadInput(f"customers.{c['id']}: trường lạ {sorted(extra)}")
-        if c.get("dish_id") not in self.menu:
+        if not isinstance(c.get("dish_id"), str) or c["dish_id"] not in self.menu:
             raise BadInput(f"customers.{c['id']}: dish_id phải là món trong menu")
         if self.dishes is not None and c["dish_id"] not in self.dishes:
             raise BadInput("món ngoài kế hoạch")
@@ -145,7 +145,7 @@ class QuanSim:
             if st != "reserved" and c["reserved"]:
                 raise BadInput(f"customers.{c['id']}: chỉ đơn reserved mới giữ chỗ")
             if c["state"] == "eating":
-                if st != "served" or c["eat_ticks_left"] <= 0 or not isinstance(c["base_price"], int):
+                if st != "served" or c["eat_ticks_left"] <= 0 or type(c["base_price"]) is not int or c["base_price"] < 0:
                     raise BadInput(f"customers.{c['id']}: khách eating phải served, có timer ăn và base_price")
             elif st == "served":
                 raise BadInput(f"customers.{c['id']}: đơn served thì khách phải đang ăn")
@@ -166,6 +166,8 @@ class QuanSim:
         seen = set()
         for d in on_dish:
             oid = d.get("order_id") if isinstance(d, dict) else None
+            if not isinstance(oid, str) or type(d.get("base_price")) is not int or d["base_price"] < 0:
+                raise BadInput("món cần order_id và base_price nguyên không âm")
             c = orders.get(oid)
             if c is None or c["dish_id"] != d.get("dish_id") or c["order_status"] != "assigned":
                 raise BadInput("món trên bếp/tay không khớp đơn assigned")

@@ -197,6 +197,11 @@ class Closing(unittest.TestCase):
 class Fixtures(unittest.TestCase):
     def test_conflicts_exit_2(self):
         bad = [
+            {"stoves": [{"id": "B1", "cook_ticks_left": -1}]},
+            {"stoves": [{"id": "B1", "state": "idle", "ready_ticks": 1}]},
+            {"random_customers": "false"},
+            {"hand": {"order_id": "C1", "dish_id": DISH},
+             "customers": [{"id": "C1", "table_id": TABLE["id"], "dish_id": DISH, "order_status": "assigned"}]},
             {"stock": individuals({}), "customers": [{"id": "C1", "table_id": TABLE["id"], "dish_id": DISH}]},  # giữ quá tồn
             {"stock": individuals({"ca_loc": 1}), "customers": [{"id": "C1", "table_id": TABLE["id"], "dish_id": DISH,
                                                     "order_status": "assigned"}]},  # assigned không có món

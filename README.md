@@ -13,15 +13,24 @@ Cách làm việc kỹ thuật là **tự do** (push thẳng, nhánh + PR, pair,
 4. **Gắn tag** `phase-1` … `phase-4` đúng hạn; chạy được tại từng tag.
 5. **Ghi chép tối thiểu:** `docs/verification/phase-n.md`, `docs/clarify.md`, `docs/ai-usage-log.md`, `docs/retro.md`, `docs/members/<handle>.md`.
 
-## Bắt đầu nhanh
+## Cách chạy
+
+Từ thư mục chứa `game.contract.json`, chạy `python3 -m chonoi.live --mode day --days 5`, mở địa chỉ in ra và chọn **Chơi**. Trên Windows có thể dùng `python` thay `python3`. Dùng WASD hoặc phím mũi tên để di chuyển, E để hái, cập bến, dùng bếp hoặc phục vụ, Space để bắt cá, P hoặc Esc để tạm dừng. Sau mỗi ca tối, mua nâng cấp trong Shop và chọn Đóng Shop để chốt Ngày.
+
+Chạy thử một Ngày không giao diện, xuất nhật ký JSONL:
 
 ```bash
-git clone <fork-của-nhóm> && cd <fork-của-nhóm>
-PYTHONPATH=tests:. python3 -m unittest discover -s tests -v        # smoke test
-python3 -m chonoi.live --mode gather                                # chơi thử trên trình duyệt (tùy chọn)
+python3 -m chonoi.headless --mode day --days 1 --seed 7 --ticks 22200 --out day.jsonl
 ```
 
-Game cần chế độ **headless** theo Test Contract (`python3 -m chonoi.headless --mode gather|quan …`) để được chạy và chấm tự động. **Công nghệ không ràng buộc**: khung Python trong `chonoi/` chỉ là gợi ý, chi tiết ở [`docs/STARTER.md`](docs/STARTER.md).
+Kiểm bàn giao kho giữa hai tiến trình với fixture v1.2:
+
+```bash
+python3 -m chonoi.headless --mode gather --seed 7 --ticks 1 --scenario docs/proof/phase-3/dock.scenario.json --inputs docs/proof/phase-1/dock-inputs.json --inventory-out inventory.json --out gather.jsonl
+python3 -m chonoi.headless --mode quan --seed 7 --ticks 0 --inventory inventory.json --out quan.jsonl
+```
+
+Chạy regression bằng `PYTHONPATH=tests:. python3 -m unittest discover -s tests -v`. Cách thiết lập Python cho bộ test Windows có trong [AGENTS.md](AGENTS.md). Các tag `phase-1`, `phase-2` và `phase-3` lần lượt dùng contract v1.0, v1.1 và v1.2.
 
 ## Tự do sáng tạo
 
