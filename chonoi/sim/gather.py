@@ -152,7 +152,7 @@ class GatherSim:
         before = self.oxygen_ticks
         self.oxygen_ticks = max(0, self.oxygen_ticks - 1)
         if before > 0 and self.oxygen_ticks == 0:
-            events.append(("oxygen_empty", {"pos": list(self.pos)}))
+            events.append(("oxygen_empty", {"oxygen_ticks": 0}))
         if self.oxygen_ticks > 0:
             self.zero_oxy_ticks = 0
             return False
@@ -164,8 +164,9 @@ class GatherSim:
         events.append(("choke", {"hp": self.hp}))
         if self.hp > 0:
             return False
-        events.append(("faint", {"pos": list(self.pos)}))
-        self.hold = []  # ngất: mất toàn bộ giỏ, kho rỗng
+        lost = list(reversed(self.hold))  # bỏ giỏ theo LIFO: nhặt sau bỏ trước
+        self.hold = []
+        events.append(("faint", {"cause": "choke", "lost": lost, "hp": 0}))
         self._finish("fainted", events)
         return True
 
@@ -178,44 +179,38 @@ class GatherSim:
                 best, best_d = e, dd
         return best
 
-    def _add_to_hold(self, kind, amount) -> int:
-        """Thêm tối đa `amount` món vào cuối giỏ (LIFO: cuối mảng là mới nhất). Trả số đã thêm."""
-        free = int(self.t["hold_capacity"]) - len(self.hold)
-        n = max(0, min(int(amount), free))
-        self.hold.extend([kind] * n)
-        return n
-
-    def _hold_full_event(self, events):
-        events.append(("hold_full", {"hold_count": len(self.hold), "hold_capacity": self.t["hold_capacity"]}))
+    def _free(self) -> int:
+        return int(self.t["hold_capacity"]) - len(self.hold)
 
     def _harvest(self, events):
+        """PRD-0 F: đủ chỗ thì thêm node_yield, đặt regrow, phát gather; thiếu chỗ phát hold_full, nút giữ nguyên."""
         node = self._nearest([n for n in self.nodes if n["regrow_ticks"] == 0], self.t["interact_radius"])
         if node is None:
             return
-        want = int(self.t["node_yield"])
-        added = self._add_to_hold(node["kind"], want)
-        if added == 0:
-            self._hold_full_event(events)
+        need = int(self.t["node_yield"])
+        if self._free() < need:
+            events.append(("hold_full", {"action": "gather", "node_id": node["id"],
+                                         "required": need, "free": self._free()}))
             return
+        self.hold.extend([node["kind"]] * need)  # cuối mảng là mới nhất (LIFO)
         node["regrow_ticks"] = int(round(self.t["regrow_s"] * TICK))
-        events.append(("gather", {"node_id": node["id"], "kind": node["kind"], "count": added}))
-        if added < want:
-            self._hold_full_event(events)
+        events.append(("gather", {"node_id": node["id"], "kind": node["kind"], "amount": need}))
 
     def _catch(self, events):
-        self.catch_cd_ticks = int(round(self.t["catch_cooldown_s"] * TICK))
+        """PRD-0 F: đàn gần nhất; đủ chỗ thì thêm toàn bộ yield, xóa đàn, đặt hồi chiêu.
+        Thiếu chỗ: hold_full, giữ đàn và hồi chiêu, không thử đàn khác. Không có đàn: không gì cả."""
         fish = self._nearest(self.fish, self.t["catch_radius"])
         if fish is None:
             return
-        want = int(self.t["fish_yield"][fish["kind"]])
-        added = self._add_to_hold(fish["kind"], want)
-        if added == 0:
-            self._hold_full_event(events)
+        need = int(self.t["fish_yield"][fish["kind"]])
+        if self._free() < need:
+            events.append(("hold_full", {"action": "catch", "fish_id": fish["id"],
+                                         "required": need, "free": self._free()}))
             return
+        self.hold.extend([fish["kind"]] * need)
         self.fish = [f for f in self.fish if f["id"] != fish["id"]]
-        events.append(("fish_caught", {"fish_id": fish["id"], "kind": fish["kind"], "count": added}))
-        if added < want:
-            self._hold_full_event(events)
+        self.catch_cd_ticks = int(round(self.t["catch_cooldown_s"] * TICK))
+        events.append(("fish_caught", {"fish_id": fish["id"], "kind": fish["kind"], "yield": need}))
 
     def _finish(self, reason, events):
         self.done = True
